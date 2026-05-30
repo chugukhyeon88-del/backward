@@ -1,0 +1,12 @@
+{
+  "name": "curriculum2022-backward-design",
+  "version": "1.0.0",
+  "description": "2022 개정 교육과정 백워드 설계 도우미",
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "devDependencies": {
+    "vercel": "^37.0.0"
+  }
+}
