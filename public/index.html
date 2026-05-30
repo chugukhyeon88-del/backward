@@ -1761,7 +1761,7 @@ async function generateLessonPlan() {
   const stds = document.getElementById('lp-standards').value;
   const goal = document.getElementById('lp-goal').value;
   const model = document.querySelector('input[name="lp-model"]:checked')?.value || 'whereto';
-  const mNames = {whereto:'WHERETO 모형',5e:'5E 탐구학습',pbl:'PBL',flipped:'플립러닝',general:'일반 강의식'};
+  const mNames = {whereto:'WHERETO 모형','5e':'5E 탐구학습',pbl:'PBL',flipped:'플립러닝',general:'일반 강의식'};
 
   const prompt = `당신은 2022 개정 교육과정 전문가 교사입니다. 다음 정보를 바탕으로 ${mNames[model]}에 따른 차시별 수업 계획을 작성하세요.
 
@@ -3714,12 +3714,12 @@ function exportAchievementLevel() {
 
     // ── Firebase 설정 (Firebase 콘솔 > 프로젝트 설정 > 웹 앱에서 복사) ──
     const firebaseConfig = {
-      apiKey:            "YOUR_API_KEY",
-      authDomain:        "YOUR_PROJECT.firebaseapp.com",
-      projectId:         "YOUR_PROJECT_ID",
-      storageBucket:     "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "YOUR_SENDER_ID",
-      appId:             "YOUR_APP_ID"
+      apiKey:            "AIzaSyDYVWU_hSz74OZvkQt-JO3NUP3CnS9ZBo4",
+      authDomain:        "backward-71d69.firebaseapp.comm",
+      projectId:         "backward-71d69",
+      storageBucket:     "backward-71d69.firebasestorage.app",
+      messagingSenderId: "398519292614",
+      appId:             "1:398519292614:web:34c4c067b82087bf03bdc7"
     };
 
     const app  = initializeApp(firebaseConfig);
