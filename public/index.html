@@ -1630,6 +1630,7 @@ function saveApiKey() {
 }
 function updateApiKeyBtn() {
   const btn = document.getElementById('api-key-btn');
+  if (!btn) return;
   const k = localStorage.getItem('claude_api_key');
   if (k) { btn.textContent = '🔑 API 키 ✓'; btn.classList.add('set'); }
   else { btn.textContent = '🔑 API 키 설정'; btn.classList.remove('set'); }
@@ -3706,7 +3707,8 @@ function exportAchievementLevel() {
   <!-- ══ Firebase SDK ══ -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
+      getRedirectResult, signOut, onAuthStateChanged }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs,
              query, where, orderBy, deleteDoc, serverTimestamp }
@@ -3728,7 +3730,7 @@ function exportAchievementLevel() {
     const provider = new GoogleAuthProvider();
 
     // ── 전역 노출 ──────────────────────────────────────────────────────────
-    window._fb = { auth, db, provider, signInWithPopup, signOut,
+    window._fb = { auth, db, provider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
                    onAuthStateChanged, collection, doc, setDoc, getDoc,
                    getDocs, query, where, orderBy, deleteDoc, serverTimestamp };
 
@@ -3737,6 +3739,8 @@ function exportAchievementLevel() {
       window._currentUser = user || null;
       updateAuthUI(user);
     });
+    // 리다이렉트 로그인 결과 처리
+    getRedirectResult(auth).catch(() => {});
   </script>
 
 <script>
@@ -3764,8 +3768,8 @@ async function handleAuthClick() {
   if (window._currentUser) {
     if (confirm('로그아웃 하시겠습니까?')) await fb.signOut(fb.auth);
   } else {
-    try { await fb.signInWithPopup(fb.auth, fb.provider); }
-    catch(e) { if (e.code !== 'auth/popup-closed-by-user') alert('로그인 오류: ' + e.message); }
+    try { await fb.signInWithRedirect(fb.auth, fb.provider); }
+    catch(e) { alert('로그인 오류: ' + e.message); }
   }
 }
 
