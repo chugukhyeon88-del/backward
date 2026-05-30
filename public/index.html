@@ -3395,8 +3395,6 @@ async function suggestField(fieldId) {
   if (!meta) return;
   const btn = document.querySelector(`button[onclick="suggestField('${fieldId}')"]`);
   const box = document.getElementById(`suggest-${fieldId}`);
-  const apiKey = getApiKey();
-  if (!apiKey) { openApiModal(); return; }
   const unit = document.getElementById('bw-unit').value.trim();
   if (!unit) { alert('단원/주제명을 먼저 입력해 주세요.'); return; }
 
@@ -3408,14 +3406,30 @@ async function suggestField(fieldId) {
   try {
     const ctx = getContext();
     const prompt = meta.prompt(ctx);
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, system: '당신은 2022 개정 교육과정 기반 백워드 설계(UbD) 전문가 교사입니다. 한국어로 답변하세요.', messages: [{ role: 'user', content: prompt }] })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, maxTokens: 2000, system: '당신은 2022 개정 교육과정 기반 백워드 설계(UbD) 전문가 교사입니다. 한국어로 답변하세요.' })
     });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error.message);
-    const text = data.content?.[0]?.text || '';
+
+    // SSE 스트림 읽기
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      for (const line of chunk.split('\n')) {
+        if (!line.startsWith('data:')) continue;
+        const d = line.slice(5).trim();
+        if (d === '[DONE]') break;
+        try {
+          const j = JSON.parse(d);
+          if (j.type === 'content_block_delta') text += j.delta?.text || '';
+        } catch {}
+      }
+    }
 
     // 번호 목록으로 파싱해서 카드 형태로 표시
     const items = text.split(/\n(?=\d+\.)/).map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
