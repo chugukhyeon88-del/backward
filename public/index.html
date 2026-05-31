@@ -796,6 +796,20 @@
   }
   .auth-btn:hover { background: rgba(255,255,255,0.25); }
   .auth-btn.signed-in { background: rgba(100,200,120,0.3); border-color: rgba(100,255,120,0.4); }
+  .ai-toggle-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    color: white;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .ai-toggle-btn:hover { background: rgba(255,255,255,0.2); }
+  .ai-toggle-btn.ai-on { background: rgba(80,200,120,0.4); border-color: rgba(80,255,120,0.5); }
+  .ai-toggle-btn.ai-off { background: rgba(200,80,80,0.3); border-color: rgba(255,100,100,0.4); }
   .user-avatar {
     width: 22px; height: 22px; border-radius: 50%;
     object-fit: cover; border: 1px solid rgba(255,255,255,0.4);
@@ -904,7 +918,10 @@
 <header class="header">
   <div class="header-logo">2022 개정교육과정 <span>백워드 설계</span> 도우미</div>
   <div class="header-right">
-    <!-- API 키는 서버에서 관리 (Vercel 환경변수) -->
+    <!-- 관리자 AI 토글 (관리자만 표시) -->
+    <button class="ai-toggle-btn" id="ai-toggle-btn" onclick="toggleAiMode()" style="display:none;" title="AI 추천 기능 ON/OFF">
+      🤖 AI <span id="ai-toggle-label">OFF</span>
+    </button>
     <button class="auth-btn" id="auth-btn" onclick="handleAuthClick()">🔐 로그인</button>
     <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
   </div>
@@ -1802,6 +1819,8 @@ function renderMarkdown(text) {
 //  API (Vercel 서버 프록시 경유)
 // ═══════════════════════════════════════════════════
 async function callClaudeStream(prompt, outputElemId, maxTokens) {
+  // AI 활성화 여부 확인
+  if (!(await checkAiEnabled())) return;
   maxTokens = maxTokens || 2500;
   const el = document.getElementById(outputElemId);
   el.innerHTML = '<span style="color:var(--text3)">AI가 생성 중입니다...</span><span class="cursor-blink"></span>';
@@ -3582,6 +3601,7 @@ function getContext() {
 }
 
 async function suggestField(fieldId) {
+  if (!(await checkAiEnabled())) return;
   const meta = fieldMeta[fieldId];
   if (!meta) return;
   const btn = document.querySelector(`button[onclick="suggestField('${fieldId}')"]`);
@@ -3962,6 +3982,57 @@ function exportAchievementLevel() {
 // ═══════════════════════════════════════════════════
 //  AUTH & FIRESTORE
 // ═══════════════════════════════════════════════════
+const ADMIN_EMAIL = 'chugukhyeon88@gmail.com';
+let _aiEnabled = false; // 전역 AI 활성화 상태
+
+function isAdmin() {
+  return window._currentUser && window._currentUser.email === ADMIN_EMAIL;
+}
+
+async function loadAiSetting() {
+  try {
+    const fb = window._fb;
+    if (!fb) return;
+    const snap = await fb.getDoc(fb.doc(fb.db, 'settings', 'global'));
+    _aiEnabled = snap.exists() ? (snap.data().aiEnabled === true) : false;
+  } catch(e) { _aiEnabled = false; }
+  updateAiUI();
+}
+
+function updateAiUI() {
+  const toggleBtn = document.getElementById('ai-toggle-btn');
+  const label = document.getElementById('ai-toggle-label');
+  if (!toggleBtn) return;
+  // 관리자만 토글 버튼 표시
+  toggleBtn.style.display = isAdmin() ? 'flex' : 'none';
+  if (_aiEnabled) {
+    toggleBtn.classList.add('ai-on'); toggleBtn.classList.remove('ai-off');
+    if (label) label.textContent = 'ON';
+  } else {
+    toggleBtn.classList.add('ai-off'); toggleBtn.classList.remove('ai-on');
+    if (label) label.textContent = 'OFF';
+  }
+}
+
+async function toggleAiMode() {
+  if (!isAdmin()) return;
+  const fb = window._fb;
+  _aiEnabled = !_aiEnabled;
+  await fb.setDoc(fb.doc(fb.db, 'settings', 'global'), { aiEnabled: _aiEnabled }, { merge: true });
+  updateAiUI();
+  showToast(_aiEnabled ? '✅ AI 추천 기능이 활성화됐습니다.' : '🔒 AI 추천 기능이 비활성화됐습니다.');
+}
+
+async function checkAiEnabled() {
+  // 최신 상태 Firestore에서 확인
+  await loadAiSetting();
+  if (!_aiEnabled) {
+    alert('🔒 AI 추천 기능이 현재 비활성화 상태입니다.\n관리자가 활성화해야 사용할 수 있습니다.');
+    return false;
+  }
+  return true;
+}
+
 function updateAuthUI(user) {
   const btn = document.getElementById('auth-btn');
   if (!btn) return;
@@ -3974,6 +4045,7 @@ function updateAuthUI(user) {
     btn.classList.remove('signed-in');
     btn.innerHTML = '🔐 로그인';
   }
+  loadAiSetting(); // 로그인/로그아웃 시 AI 상태 갱신
 }
 
 async function handleAuthClick() {
@@ -4314,6 +4386,7 @@ async function extractPdfText(file) {
 }
 
 async function generatePyeongeon() {
+  if (!(await checkAiEnabled())) return;
   const standards = document.getElementById('pe-standards').value.trim();
   const task = document.getElementById('pe-task').value.trim();
   const rubric = document.getElementById('pe-rubric').value.trim();
