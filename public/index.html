@@ -3977,8 +3977,18 @@ async function handleAuthClick() {
   if (window._currentUser) {
     if (confirm('로그아웃 하시겠습니까?')) await fb.signOut(fb.auth);
   } else {
-    try { await fb.signInWithRedirect(fb.auth, fb.provider); }
-    catch(e) { alert('로그인 오류: ' + e.message); }
+    try {
+      // 팝업 방식 우선 시도 (Chrome 최신 버전 호환)
+      await fb.signInWithPopup(fb.auth, fb.provider);
+    } catch(e) {
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+        // 팝업 차단 시 redirect로 fallback
+        try { await fb.signInWithRedirect(fb.auth, fb.provider); }
+        catch(e2) { alert('로그인 오류: ' + e2.message); }
+      } else {
+        alert('로그인 오류: ' + e.message);
+      }
+    }
   }
 }
 
