@@ -3908,7 +3908,8 @@ function exportAchievementLevel() {
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
-      getRedirectResult, signOut, onAuthStateChanged }
+      getRedirectResult, signOut, onAuthStateChanged,
+      setPersistence, browserLocalPersistence }
       from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
     import { getFirestore, collection, doc, setDoc, getDoc, getDocs,
              query, where, orderBy, deleteDoc, serverTimestamp }
@@ -3928,6 +3929,10 @@ function exportAchievementLevel() {
     const auth = getAuth(app);
     const db   = getFirestore(app);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    // localStorage 기반 인증 상태 유지 (Chrome unload 정책 우회)
+    setPersistence(auth, browserLocalPersistence).catch(e => console.warn('setPersistence 실패:', e));
 
     // ── 전역 노출 ──────────────────────────────────────────────────────────
     window._fb = { auth, db, provider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
