@@ -1925,7 +1925,7 @@ ${model==='whereto'?'- **WHERETO 요소**: 각 차시 해당 요소 명시':mode
 실제 교실에서 즉시 활용 가능하도록 구체적으로 작성하세요.`;
 
   document.getElementById('lesson-plan-result').style.display = 'block';
-  await callClaudeStream(prompt, 'lesson-plan-ai-text', 3000);
+  await callClaudeStream(prompt, 'lesson-plan-ai-text', 6000);
 }
 function exportLessonPlan() {
   const text = document.getElementById('lesson-plan-ai-text').innerText;
@@ -1959,7 +1959,7 @@ async function generateRubric() {
 4. 표 아래에 총점 및 환산 기준 제시`;
 
   document.getElementById('rubric-result').style.display = 'block';
-  await callClaudeStream(prompt, 'rubric-ai-text', 3000);
+  await callClaudeStream(prompt, 'rubric-ai-text', 6000);
 }
 function exportRubric() {
   const text = document.getElementById('rubric-ai-text').innerText;
@@ -1999,7 +1999,7 @@ async function generateAssessment() {
 - ## 선택형 문항, ## 단답형 문항 등 마크다운 헤딩으로 구분`;
 
   document.getElementById('assessment-result').style.display = 'block';
-  await callClaudeStream(prompt, 'assessment-ai-text', 3000);
+  await callClaudeStream(prompt, 'assessment-ai-text', 6000);
 }
 
 // ═══════════════════════════════════════════════════
@@ -2032,7 +2032,7 @@ ${types.join('\n')}
 - 실생활 맥락과 연결, ${grade} 수준에 적합하게 작성`;
 
   document.getElementById('inquiry-result').style.display = 'block';
-  await callClaudeStream(prompt, 'inquiry-ai-text', 2500);
+  await callClaudeStream(prompt, 'inquiry-ai-text', 5000);
 }
 
 // ═══════════════════════════════════════════════════
@@ -2072,7 +2072,7 @@ async function generateCoreIdea() {
 실제 2022 개정 교육과정 형식과 수준에 맞게 작성하세요.`;
 
   document.getElementById('core-idea-result').style.display = 'block';
-  await callClaudeStream(prompt, 'core-idea-ai-text', 2000);
+  await callClaudeStream(prompt, 'core-idea-ai-text', 4000);
 }
 
 // ═══════════════════════════════════════════════════
@@ -3725,7 +3725,7 @@ ${plan || '(미입력)'}
   const textDiv = document.getElementById('backward-ai-text');
   resultDiv.style.display = 'block';
   textDiv.classList.add('md-rendered');
-  await callClaudeStream(prompt, 'backward-ai-text', 3000);
+  await callClaudeStream(prompt, 'backward-ai-text', 8000);
 }
 
 async function generateGrasps() {
@@ -3760,7 +3760,7 @@ async function generateGrasps() {
   const textDiv = document.getElementById('grasps-ai-text');
   resultDiv.style.display = 'block';
   textDiv.classList.add('md-rendered');
-  await callClaudeStream(prompt, 'grasps-ai-text', 2500);
+  await callClaudeStream(prompt, 'grasps-ai-text', 5000);
 }
 
 // ═══════════════════════════════════════════════════
@@ -3917,7 +3917,7 @@ ${formatGuide}
 마지막에 과정중심 평가 운영 시 유의사항을 3~5개 bullet로 추가하세요.`;
 
   document.getElementById('al-result').style.display = 'block';
-  await callClaudeStream(prompt, 'al-ai-text', 3000);
+  await callClaudeStream(prompt, 'al-ai-text', 6000);
 }
 
 function exportAchievementLevel() {

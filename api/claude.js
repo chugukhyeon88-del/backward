@@ -11,7 +11,7 @@ module.exports = async function (req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) { res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' }); return; }
 
-  const { prompt, maxTokens = 3000, system } = req.body || {};
+  const { prompt, maxTokens = 8000, system } = req.body || {};
   if (!prompt) { res.status(400).json({ error: 'prompt required' }); return; }
 
   const upstream = await fetch('https://api.anthropic.com/v1/messages', {
