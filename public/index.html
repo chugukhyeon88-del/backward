@@ -1789,9 +1789,16 @@ function renderMarkdown(text) {
   // tables
   const tableRe = /(\|.+\|\n)(\|[-| :]+\|\n)((\|.+\|\n?)+)/gm;
   h = h.replace(tableRe, (m, header, sep, body) => {
-    const thCells = header.trim().split('|').filter(c=>c.trim()).map(c=>`<th>${c.trim()}</th>`).join('');
+    const processCell = (c) => {
+      // &lt;br&gt; 또는 <br> → 실제 줄바꿈 처리
+      return c.trim()
+        .replace(/&lt;br&gt;/gi, '<br>')
+        .replace(/&lt;br \/&gt;/gi, '<br>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    };
+    const thCells = header.trim().split('|').filter(c=>c.trim()).map(c=>`<th>${processCell(c)}</th>`).join('');
     const rows = body.trim().split('\n').map(row => {
-      const cells = row.split('|').filter(c=>c.trim()).map(c=>`<td>${c.trim()}</td>`).join('');
+      const cells = row.split('|').filter(c=>c.trim()).map(c=>`<td>${processCell(c)}</td>`).join('');
       return `<tr>${cells}</tr>`;
     }).join('');
     return `<table><thead><tr>${thCells}</tr></thead><tbody>${rows}</tbody></table>\n`;
