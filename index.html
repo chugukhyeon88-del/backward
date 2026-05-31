@@ -396,6 +396,50 @@
   .std-checkbox-label { font-size: 13px; line-height: 1.5; }
   .std-checkbox-code { font-size: 11px; font-weight: 700; color: var(--primary); font-family: monospace; }
 
+  /* 과목 선택 버튼 */
+  .subject-select-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .subject-select-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+  .subject-select-btn.selected { background: var(--primary); border-color: var(--primary); color: white; font-weight: 600; }
+
+  /* 과목별 성취기준 블록 */
+  .subject-std-block {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .subject-std-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+  }
+  .subject-std-title { font-weight: 700; font-size: 14px; color: var(--text1); }
+  .subject-std-grade {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .subject-std-body { padding: 8px; max-height: 220px; overflow-y: auto; }
+
   .btn {
     padding: 10px 24px;
     border-radius: var(--radius-sm);
@@ -1005,31 +1049,20 @@
           </div>
         </div>
         <div class="card-body">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-            <div class="form-row">
-              <label class="form-label">과목</label>
-              <select class="form-select" id="bw-subject" onchange="loadBwStandards()">
-                <option value="social">사회</option>
-                <option value="math">수학</option>
-                <option value="science">과학</option>
-                <option value="korean">국어</option>
-                <option value="english">영어</option>
-                <option value="moral">도덕</option>
-                <option value="art">미술</option>
-                <option value="music">음악</option>
-                <option value="tech">실과/기술가정</option>
-                <option value="info">정보</option>
-              </select>
-            </div>
-            <div class="form-row">
-              <label class="form-label">학년군</label>
-              <select class="form-select" id="bw-grade" onchange="loadBwStandards()">
-                <option value="1-2">1~2학년군</option>
-                <option value="3-4">3~4학년군</option>
-                <option value="5-6">5~6학년군</option>
-                <option value="mid1-3">중학교 1~3학년</option>
-                <option value="high">고등학교</option>
-              </select>
+          <div class="form-row">
+            <label class="form-label">과목 선택 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div class="form-hint">과목을 클릭하여 추가하세요. 선택한 과목별로 성취기준을 선택할 수 있습니다.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="bw-subject-tags">
+              <button type="button" class="subject-select-btn" data-sub="social" onclick="toggleSubjectTag(this)">🌍 사회</button>
+              <button type="button" class="subject-select-btn" data-sub="math" onclick="toggleSubjectTag(this)">📐 수학</button>
+              <button type="button" class="subject-select-btn" data-sub="science" onclick="toggleSubjectTag(this)">🔬 과학</button>
+              <button type="button" class="subject-select-btn" data-sub="korean" onclick="toggleSubjectTag(this)">📖 국어</button>
+              <button type="button" class="subject-select-btn" data-sub="english" onclick="toggleSubjectTag(this)">🔤 영어</button>
+              <button type="button" class="subject-select-btn" data-sub="moral" onclick="toggleSubjectTag(this)">🌱 도덕</button>
+              <button type="button" class="subject-select-btn" data-sub="art" onclick="toggleSubjectTag(this)">🎨 미술</button>
+              <button type="button" class="subject-select-btn" data-sub="music" onclick="toggleSubjectTag(this)">🎵 음악</button>
+              <button type="button" class="subject-select-btn" data-sub="tech" onclick="toggleSubjectTag(this)">🔧 실과/기술가정</button>
+              <button type="button" class="subject-select-btn" data-sub="info" onclick="toggleSubjectTag(this)">💻 정보</button>
             </div>
           </div>
           <div class="form-row">
@@ -1064,9 +1097,9 @@
         <div class="card-body">
           <div class="form-row">
             <label class="form-label">📌 관련 성취기준 선택</label>
-            <div class="form-hint">수업과 관련된 성취기준을 선택하세요 (복수 선택 가능)</div>
-            <div class="standards-selector" id="bw-std-selector">
-              <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목/학년을 선택하면 성취기준이 표시됩니다.</p>
+            <div class="form-hint">과목을 선택한 뒤 학년군별 성취기준을 선택하세요 (과목별·복수 선택 가능)</div>
+            <div id="bw-std-container">
+              <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>
             </div>
           </div>
           <div class="form-row">
@@ -3325,22 +3358,99 @@ function renderStandardsList(sub, grade) {
 //  BACKWARD DESIGN — LOAD STANDARDS INTO SELECTOR
 // ═══════════════════════════════════════════════════
 
-function loadBwStandards() {
-  const sub = document.getElementById('bw-subject').value;
-  const grade = document.getElementById('bw-grade').value;
-  const selector = document.getElementById('bw-std-selector');
-  const stds = (standardsData[sub][grade]) || [];
-  if (!stds.length) { selector.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">해당 학년군 성취기준이 없습니다.</p>'; return; }
+// 선택된 과목 목록
+const bwSelectedSubjects = new Set();
+
+const subjectNames = {social:'사회',math:'수학',science:'과학',korean:'국어',english:'영어',moral:'도덕',art:'미술',music:'음악',tech:'실과/기술가정',info:'정보'};
+const subjectEmojis = {social:'🌍',math:'📐',science:'🔬',korean:'📖',english:'🔤',moral:'🌱',art:'🎨',music:'🎵',tech:'🔧',info:'💻'};
+const gradeOptions = [
+  {value:'1-2', label:'1~2학년군'},
+  {value:'3-4', label:'3~4학년군'},
+  {value:'5-6', label:'5~6학년군'},
+  {value:'mid1-3', label:'중학교 1~3학년'},
+  {value:'high', label:'고등학교'},
+];
+
+function toggleSubjectTag(btn) {
+  const sub = btn.dataset.sub;
+  if (bwSelectedSubjects.has(sub)) {
+    bwSelectedSubjects.delete(sub);
+    btn.classList.remove('selected');
+  } else {
+    bwSelectedSubjects.add(sub);
+    btn.classList.add('selected');
+  }
+  renderBwStdContainer();
+}
+
+function renderBwStdContainer() {
+  const container = document.getElementById('bw-std-container');
+  if (bwSelectedSubjects.size === 0) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const sub of bwSelectedSubjects) {
+    const gradeSelect = `<select class="subject-std-grade" id="bw-grade-${sub}" onchange="loadSubjectStandards('${sub}')">
+      ${gradeOptions.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}
+    </select>`;
+    html += `<div class="subject-std-block" id="bw-std-block-${sub}">
+      <div class="subject-std-header">
+        <span class="subject-std-title">${subjectEmojis[sub]} ${subjectNames[sub]}</span>
+        ${gradeSelect}
+      </div>
+      <div class="subject-std-body" id="bw-std-body-${sub}">
+        <p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">학년군을 선택하면 성취기준이 표시됩니다.</p>
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+  // 각 과목 기본 학년 로드
+  for (const sub of bwSelectedSubjects) {
+    loadSubjectStandards(sub);
+  }
+}
+
+function loadSubjectStandards(sub) {
+  const gradeEl = document.getElementById(`bw-grade-${sub}`);
+  const body = document.getElementById(`bw-std-body-${sub}`);
+  if (!gradeEl || !body) return;
+  const grade = gradeEl.value;
+  const stds = (standardsData[sub] && standardsData[sub][grade]) || [];
+  if (!stds.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">해당 학년군 성취기준이 없습니다.</p>';
+    return;
+  }
   let html = '';
   for (const s of stds) {
     html += `<label class="std-checkbox-item">
-      <input type="checkbox" value="${s.code}" data-text="${s.text}">
+      <input type="checkbox" value="${s.code}" data-sub="${sub}" data-text="${s.text}">
       <div class="std-checkbox-label">
         <span class="std-checkbox-code">${s.code}</span> ${s.text}
       </div>
     </label>`;
   }
-  selector.innerHTML = html;
+  body.innerHTML = html;
+}
+
+function loadBwStandards() {
+  // 하위 호환 - 더 이상 단일 드롭다운 아님
+  renderBwStdContainer();
+}
+
+// 선택된 성취기준 전체 수집 (과목별)
+function getBwCheckedStandards() {
+  const result = [];
+  document.querySelectorAll('#bw-std-container input[type=checkbox]:checked').forEach(c => {
+    const subName = subjectNames[c.dataset.sub] || c.dataset.sub;
+    result.push(`[${subName}] ${c.value}: ${c.dataset.text}`);
+  });
+  return result.join('\n');
+}
+
+// 선택된 과목명 목록
+function getBwSubjectNames() {
+  return [...bwSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
 }
 
 // ═══════════════════════════════════════════════════
@@ -3368,18 +3478,15 @@ const fieldMeta = {
 };
 
 function getContext() {
-  const sub = document.getElementById('bw-subject').value;
-  const subName = {social:'사회',math:'수학',science:'과학',korean:'국어',english:'영어',moral:'도덕',art:'미술',music:'음악',tech:'실과/기술가정',info:'정보'}[sub] || sub;
-  const gradeMap = {'1-2':'초등 1~2학년','3-4':'초등 3~4학년','5-6':'초등 5~6학년','mid1-3':'중학교 1~3학년','high':'고등학교'};
-  const grade = gradeMap[document.getElementById('bw-grade').value] || document.getElementById('bw-grade').value;
+  const subName = getBwSubjectNames() || '(과목 미선택)';
   const unit = document.getElementById('bw-unit').value;
   const hours = document.getElementById('bw-hours').value;
-  const checkedStds = [...document.querySelectorAll('#bw-std-selector input:checked')].map(c => `${c.value}: ${c.dataset.text}`).join('\n');
+  const checkedStds = getBwCheckedStandards();
   const eu = document.getElementById('bw-eu').value;
   const eq = document.getElementById('bw-eq').value;
   const kk = document.getElementById('bw-kk').value;
   const pt = document.getElementById('bw-pt').value;
-  let ctx = `- 교과: ${subName}\n- 학년군: ${grade}`;
+  let ctx = `- 교과: ${subName}`;
   if (unit) ctx += `\n- 단원/주제: ${unit}`;
   if (hours) ctx += `\n- 수업 차시: ${hours}`;
   if (checkedStds) ctx += `\n- 선택된 성취기준:\n${checkedStds}`;
@@ -3465,8 +3572,7 @@ function applySuggest(targetId, text) {
 }
 
 async function generateBackward() {
-  const sub = document.getElementById('bw-subject').value;
-  const grade = document.getElementById('bw-grade').value;
+  const subName = getBwSubjectNames() || '(과목 미선택)';
   const type = document.getElementById('bw-type').value;
   const unit = document.getElementById('bw-unit').value;
   const hours = document.getElementById('bw-hours').value;
@@ -3477,15 +3583,12 @@ async function generateBackward() {
   const criteria = document.getElementById('bw-criteria').value;
   const plan = document.getElementById('bw-plan').value;
 
-  const checkedStds = [...document.querySelectorAll('#bw-std-selector input:checked')].map(c => `${c.value}: ${c.dataset.text}`).join('\n');
-
-  const subName = {social:'사회',math:'수학',science:'과학',korean:'국어',english:'영어',moral:'도덕',art:'미술',music:'음악',tech:'실과/기술가정',info:'정보'}[sub];
-  const gradeMap = {'3-4':'초등 3~4학년군','5-6':'초등 5~6학년군','mid1-3':'중학교 1~3학년','high':'고등학교'};
+  const checkedStds = getBwCheckedStandards();
 
   const prompt = `당신은 2022 개정 교육과정 전문가 교사입니다. 다음 정보를 바탕으로 백워드 설계(UbD) 완성본을 작성해주세요.
 
 [기본 정보]
-- 과목: ${subName} / 학년군: ${gradeMap[grade]} / 수업 유형: ${type}
+- 교과: ${subName} / 수업 유형: ${type}
 - 단원/주제: ${unit || '(미입력)'}
 - 수업 차시: ${hours || '(미입력)'}
 
@@ -3564,8 +3667,7 @@ function clearGrasps() {
 function exportBackward() {
   const texts = [
     '=== 2022 개정 교육과정 백워드 수업 설계안 ===\n',
-    `과목: ${document.getElementById('bw-subject').value}`,
-    `학년: ${document.getElementById('bw-grade').value}`,
+    `교과: ${getBwSubjectNames()}`,
     `단원: ${document.getElementById('bw-unit').value}`,
     '\n[1단계: 바라는 결과]',
     `영속적 이해: ${document.getElementById('bw-eu').value}`,
@@ -3912,8 +4014,8 @@ function collectDesignData(type) {
   if (type === 'backward') {
     return {
       title: document.getElementById('bw-unit')?.value || '',
-      subject: document.getElementById('bw-subject')?.value || '',
-      grade: document.getElementById('bw-grade')?.value || '',
+      subject: getBwSubjectNames(),
+      subjects: [...bwSelectedSubjects],
       unit: document.getElementById('bw-unit')?.value || '',
       hours: document.getElementById('bw-hours')?.value || '',
       eu: document.getElementById('bw-eu')?.value || '',
@@ -3977,7 +4079,16 @@ function collectDesignData(type) {
 function applyDesignData(data, type) {
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
   if (type === 'backward') {
-    set('bw-subject', data.subject); set('bw-grade', data.grade);
+    // 과목 복원
+    if (data.subjects && Array.isArray(data.subjects)) {
+      bwSelectedSubjects.clear();
+      data.subjects.forEach(s => {
+        bwSelectedSubjects.add(s);
+        const btn = document.querySelector(`#bw-subject-tags [data-sub="${s}"]`);
+        if (btn) btn.classList.add('selected');
+      });
+      renderBwStdContainer();
+    }
     set('bw-unit', data.unit); set('bw-hours', data.hours);
     set('bw-eu', data.eu); set('bw-eq', data.eq);
     set('bw-kk', data.kk); set('bw-pt', data.pt);
