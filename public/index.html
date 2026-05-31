@@ -3940,7 +3940,16 @@ function exportAchievementLevel() {
       updateAuthUI(user);
     });
     // 리다이렉트 로그인 결과 처리
-    getRedirectResult(auth).catch(() => {});
+    getRedirectResult(auth).then(result => {
+      if (result && result.user) {
+        console.log('✅ 리다이렉트 로그인 성공:', result.user.displayName);
+      }
+    }).catch(e => {
+      console.error('❌ getRedirectResult 오류:', e.code, e.message);
+      if (e.code !== 'auth/no-current-user') {
+        alert('로그인 오류: ' + e.message);
+      }
+    });
   </script>
 
 <script>
