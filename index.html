@@ -951,6 +951,9 @@
       <div class="nav-item" onclick="navigate('inquiry')">
         <span class="icon">🔍</span> 탐구 질문 생성
       </div>
+      <div class="nav-item" onclick="navigate('pyeongeon')">
+        <span class="icon">📝</span> 평어 생성
+      </div>
       <div class="nav-item" onclick="navigate('ai-core-idea')">
         <span class="icon">💎</span> 핵심아이디어 생성
       </div>
@@ -1631,8 +1634,89 @@
         <div class="ai-result-area md-rendered" id="core-idea-ai-text">생성 중...</div>
       </div>
     </div>
+    <!-- ===== PAGE: 평어 생성 ===== -->
+    <div id="page-pyeongeon" class="page">
+      <h1 class="page-title">📝 평어 생성</h1>
+      <p class="page-desc">성취기준과 수행평가 정보를 입력하고 학생 평가 기록(PDF)을 업로드하면 AI가 평어를 생성합니다.</p>
+
+      <!-- 평가 기본 정보 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left"><span>📋</span><span class="card-title">평가 기본 정보</span></div>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <label class="form-label">성취기준 <span style="color:var(--danger);"></span></label>
+            <textarea class="form-textarea" id="pe-standards" rows="3" placeholder="예: 자료를 수집, 분류, 정리하여 목적에 맞는 그래프로 나타내고, 그래프를 해석할 수 있다."></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">수행평가 설명</label>
+            <textarea class="form-textarea" id="pe-task" rows="3" placeholder="예: 조사한 자료를 그래프로 나타내고, 그래프를 보고 해석하여 알 수 있는 사실 찾기"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">평가 기준 <span style="font-weight:400;color:var(--text3);font-size:12px;">(선택 — 루브릭이 있으면 입력)</span></label>
+            <textarea class="form-textarea" id="pe-rubric" rows="3" placeholder="예: 매우잘함 - 그래프를 정확하게 완성하고 해석까지 논리적으로 서술함&#10;잘함 - 그래프를 대체로 정확하게 완성하고 해석함&#10;보통 - 그래프는 완성했으나 해석이 미흡함"></textarea>
+          </div>
+          <div class="form-row">
+            <label class="form-label">생성할 평어 수</label>
+            <select class="form-select" id="pe-count" style="max-width:180px;">
+              <option value="20">20개</option>
+              <option value="30">30개</option>
+              <option value="40">40개</option>
+              <option value="50">50개</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF 업로드 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-header-left"><span>📄</span><span class="card-title">학생 평가 기록 업로드 <span style="font-weight:400;color:var(--text3);font-size:13px;">(선택)</span></span></div>
+        </div>
+        <div class="card-body">
+          <div class="form-hint" style="margin-bottom:12px;">학생 평가 기록 PDF를 업로드하면 AI가 내용을 분석하여 더 구체적인 평어를 생성합니다. PDF 없이도 성취기준만으로 평어 생성이 가능합니다.</div>
+          <div id="pe-drop-zone" style="border:2px dashed var(--border);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--surface2);"
+            onclick="document.getElementById('pe-pdf-input').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--primary)'"
+            ondragleave="this.style.borderColor='var(--border)'"
+            ondrop="handlePdfDrop(event)">
+            <div style="font-size:2rem;margin-bottom:8px;">📄</div>
+            <div style="color:var(--text2);font-size:14px;">PDF 파일을 여기에 드래그하거나 클릭하여 업로드</div>
+            <div style="color:var(--text3);font-size:12px;margin-top:4px;">지원 형식: PDF</div>
+          </div>
+          <input type="file" id="pe-pdf-input" accept=".pdf" style="display:none;" onchange="handlePdfUpload(this.files)">
+          <div id="pe-pdf-status" style="margin-top:10px;font-size:13px;color:var(--text2);"></div>
+          <div id="pe-pdf-preview" style="margin-top:10px;"></div>
+          <!-- 수동 텍스트 입력 -->
+          <div class="form-row" style="margin-top:16px;">
+            <label class="form-label">또는 학생 평가 내용 직접 입력</label>
+            <textarea class="form-textarea" id="pe-student-text" rows="5" placeholder="학생의 수행 내용, 관찰 기록, 채점 결과 등을 자유롭게 입력하세요.&#10;예: 1번 학생 - 그래프를 정확히 그렸으며 해석도 논리적으로 서술함&#10;2번 학생 - 그래프는 완성했으나 해석이 단편적임"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 생성 버튼 -->
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generatePyeongeon()">📝 AI로 평어 생성</button>
+        <button class="btn btn-outline" onclick="copyResult('pe-ai-text')">📋 복사</button>
+        <button class="btn btn-outline" onclick="clearPyeongeon()">🗑 초기화</button>
+      </div>
+
+      <div id="pe-result" style="display:none;" class="result-section">
+        <div class="result-title">📝 <span class="ai-badge">✨ AI</span> &nbsp;생성된 평어 목록</div>
+        <div class="ai-result-area md-rendered" id="pe-ai-text">생성 중...</div>
+      </div>
+    </div>
+
   </main>
 </div>
+
+<!-- PDF.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if (typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
 
 <script>
 
@@ -4156,6 +4240,114 @@ function showToast(msg, duration = 2500) {
 
 // 공유링크 자동 로드
 window.addEventListener("load", loadSharedDesign);
+
+// ═══════════════════════════════════════════════════
+//  평어 생성
+// ═══════════════════════════════════════════════════
+
+let pePdfText = ''; // 추출된 PDF 텍스트
+
+async function handlePdfUpload(files) {
+  if (!files || !files[0]) return;
+  const file = files[0];
+  if (file.type !== 'application/pdf') {
+    alert('PDF 파일만 업로드 가능합니다.');
+    return;
+  }
+  const status = document.getElementById('pe-pdf-status');
+  status.innerHTML = `⏳ <strong>${file.name}</strong> 처리 중...`;
+  try {
+    pePdfText = await extractPdfText(file);
+    const preview = document.getElementById('pe-pdf-preview');
+    const previewText = pePdfText.length > 500 ? pePdfText.slice(0, 500) + '...' : pePdfText;
+    preview.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2);white-space:pre-wrap;max-height:150px;overflow-y:auto;">${previewText}</div>`;
+    status.innerHTML = `✅ <strong>${file.name}</strong> 업로드 완료 — ${pePdfText.length}자 추출됨`;
+    document.getElementById('pe-drop-zone').style.borderColor = 'var(--primary)';
+  } catch(e) {
+    status.innerHTML = `❌ PDF 처리 오류: ${e.message}`;
+    pePdfText = '';
+  }
+}
+
+function handlePdfDrop(event) {
+  event.preventDefault();
+  document.getElementById('pe-drop-zone').style.borderColor = 'var(--border)';
+  const files = event.dataTransfer.files;
+  if (files.length) handlePdfUpload(files);
+}
+
+async function extractPdfText(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js가 로드되지 않았습니다.');
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(item => item.str).join(' ') + '\n';
+  }
+  return text.trim();
+}
+
+async function generatePyeongeon() {
+  const standards = document.getElementById('pe-standards').value.trim();
+  const task = document.getElementById('pe-task').value.trim();
+  const rubric = document.getElementById('pe-rubric').value.trim();
+  const studentText = document.getElementById('pe-student-text').value.trim();
+  const count = document.getElementById('pe-count').value;
+
+  if (!standards) { alert('성취기준을 입력해 주세요.'); return; }
+  if (!task) { alert('수행평가 설명을 입력해 주세요.'); return; }
+
+  const resultDiv = document.getElementById('pe-result');
+  const aiText = document.getElementById('pe-ai-text');
+  resultDiv.style.display = 'block';
+  aiText.innerHTML = '<span style="color:var(--text3);">⏳ 평어 생성 중...</span>';
+  resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  const studentContent = pePdfText || studentText;
+
+  const prompt = `당신은 초등학교 교사로서 학생 생활기록부 평어 작성 전문가입니다.
+
+아래 성취기준과 수행평가 정보를 바탕으로 평어를 ${count}개 이상 작성해 주세요.
+
+[성취기준]
+${standards}
+
+[수행평가 설명]
+${task}
+${rubric ? `\n[평가 기준]\n${rubric}` : ''}
+${studentContent ? `\n[학생 평가 기록]\n${studentContent.slice(0, 3000)}` : ''}
+
+[평어 작성 규칙 - 반드시 지켜주세요]
+1. 주어를 생략하고 서술어로 끝내기 (예: "~를 잘 설명함", "~능력이 뛰어남")
+2. 각 평어는 60~80자 내외의 한 문장으로 작성
+3. 종결어미: '-임', '-함', '-발표함', '-서술함', '-표현함', '-설명함', '-뛰어남', '-탁월함', '-완성함', '-나타냄', '-추론함', '-정리함' 등 다양하게 사용
+4. 꾸며주는 말 적극 활용: '구체적으로', '적극적으로', '바르게', '정확하게', '논리적으로', '창의적으로', '다양한 방법으로', '효과적으로' 등
+5. 수행 수준이 높은 것(매우잘함)부터 낮은 것(보통)까지 다양한 수준의 평어를 골고루 작성
+6. 단순 반복 없이 표현과 내용을 다양하게 변형
+
+[출력 형식]
+번호와 평어만 작성하세요. 설명이나 분류 레이블 없이 바로 평어 목록만 출력합니다.
+1. 평어 내용
+2. 평어 내용
+...`;
+
+  await callClaudeStream(prompt, 'pe-ai-text', 4000);
+}
+
+function clearPyeongeon() {
+  document.getElementById('pe-standards').value = '';
+  document.getElementById('pe-task').value = '';
+  document.getElementById('pe-rubric').value = '';
+  document.getElementById('pe-student-text').value = '';
+  document.getElementById('pe-pdf-status').innerHTML = '';
+  document.getElementById('pe-pdf-preview').innerHTML = '';
+  document.getElementById('pe-drop-zone').style.borderColor = 'var(--border)';
+  document.getElementById('pe-result').style.display = 'none';
+  document.getElementById('pe-pdf-input').value = '';
+  pePdfText = '';
+}
 </script>
 </body>
 </html>
