@@ -1259,15 +1259,22 @@
           </div>
         </div>
         <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
-            <div class="form-row" style="margin:0;">
-              <label class="form-label">과목</label>
-              <select class="form-select" id="grasps-subject">
-                <option>사회</option><option>수학</option><option>과학</option>
-                <option>국어</option><option>영어</option><option>도덕</option>
-                <option>미술</option><option>음악</option><option>실과/기술가정</option><option>정보</option>
-              </select>
+          <div class="form-row">
+            <label class="form-label">과목 선택 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;" id="grasps-subject-tags">
+              <button type="button" class="subject-select-btn" data-sub="social" onclick="toggleGraspsSubject(this)">🌍 사회</button>
+              <button type="button" class="subject-select-btn" data-sub="math" onclick="toggleGraspsSubject(this)">📐 수학</button>
+              <button type="button" class="subject-select-btn" data-sub="science" onclick="toggleGraspsSubject(this)">🔬 과학</button>
+              <button type="button" class="subject-select-btn" data-sub="korean" onclick="toggleGraspsSubject(this)">📖 국어</button>
+              <button type="button" class="subject-select-btn" data-sub="english" onclick="toggleGraspsSubject(this)">🔤 영어</button>
+              <button type="button" class="subject-select-btn" data-sub="moral" onclick="toggleGraspsSubject(this)">🌱 도덕</button>
+              <button type="button" class="subject-select-btn" data-sub="art" onclick="toggleGraspsSubject(this)">🎨 미술</button>
+              <button type="button" class="subject-select-btn" data-sub="music" onclick="toggleGraspsSubject(this)">🎵 음악</button>
+              <button type="button" class="subject-select-btn" data-sub="tech" onclick="toggleGraspsSubject(this)">🔧 실과/기술가정</button>
+              <button type="button" class="subject-select-btn" data-sub="info" onclick="toggleGraspsSubject(this)">💻 정보</button>
             </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:4px;">
             <div class="form-row" style="margin:0;">
               <label class="form-label">학년</label>
               <select class="form-select" id="grasps-grade">
@@ -3947,8 +3954,26 @@ ${plan || '(미입력)'}
   await callClaudeStream(prompt, 'backward-ai-text', 8000);
 }
 
+// GRASPS 다중 과목 선택
+const graspsSelectedSubjects = new Set();
+
+function toggleGraspsSubject(btn) {
+  const sub = btn.dataset.sub;
+  if (graspsSelectedSubjects.has(sub)) {
+    graspsSelectedSubjects.delete(sub);
+    btn.classList.remove('selected');
+  } else {
+    graspsSelectedSubjects.add(sub);
+    btn.classList.add('selected');
+  }
+}
+
+function getGraspsSubjectNames() {
+  return [...graspsSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
+}
+
 async function generateGrasps() {
-  const subject = document.getElementById('grasps-subject').value;
+  const subject = getGraspsSubjectNames() || document.getElementById('grasps-subject')?.value || '(과목 미선택)';
   const grade = document.getElementById('grasps-grade').value;
   const unit = document.getElementById('grasps-unit').value;
   const g = document.getElementById('grasps-g').value;
@@ -3961,7 +3986,7 @@ async function generateGrasps() {
   const prompt = `당신은 2022 개정 교육과정을 적용하는 교육 전문가입니다. 다음 정보를 바탕으로 GRASPS 수행과제를 완성해주세요.
 
 [기본 정보]
-- 과목: ${subject} / 학년: ${grade} / 단원·주제: ${unit || '(미입력)'}
+- 교과: ${subject} / 학년: ${grade} / 단원·주제: ${unit || '(미입력)'}
 
 [입력된 GRASPS 요소]
 - G(Goal/목표): ${g || '(미입력)'}
@@ -4021,7 +4046,7 @@ function exportBackward() {
 function exportGrasps() {
   const texts = [
     '=== GRASPS 수행과제 설계 ===\n',
-    `과목: ${document.getElementById('grasps-subject').value}`,
+    `교과: ${getGraspsSubjectNames()}`,
     `학년: ${document.getElementById('grasps-grade').value}`,
     `주제: ${document.getElementById('grasps-unit').value}`,
     `\nG(목표): ${document.getElementById('grasps-g').value}`,
@@ -4436,7 +4461,8 @@ function collectDesignData(type) {
   if (type === 'grasps') {
     return {
       title: document.getElementById('grasps-unit')?.value || '',
-      subject: document.getElementById('grasps-subject')?.value || '',
+      subject: getGraspsSubjectNames(),
+      subjects: [...graspsSelectedSubjects],
       grade: document.getElementById('grasps-grade')?.value || '',
       unit: document.getElementById('grasps-unit')?.value || '',
       g: document.getElementById('grasps-g')?.value || '',
@@ -4505,7 +4531,16 @@ function applyDesignData(data, type) {
     }
   }
   if (type === 'grasps') {
-    set('grasps-subject', data.subject); set('grasps-grade', data.grade);
+    // 과목 복원
+    if (data.subjects && Array.isArray(data.subjects)) {
+      graspsSelectedSubjects.clear();
+      data.subjects.forEach(s => {
+        graspsSelectedSubjects.add(s);
+        const btn = document.querySelector(`#grasps-subject-tags [data-sub="${s}"]`);
+        if (btn) btn.classList.add('selected');
+      });
+    }
+    set('grasps-grade', data.grade);
     set('grasps-unit', data.unit); set('grasps-g', data.g);
     set('grasps-r', data.r); set('grasps-au', data.a);
     set('grasps-s', data.s); set('grasps-p', data.p); set('grasps-ps', data.ps);
