@@ -317,6 +317,125 @@
   }
   .ai-suggest-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
   .ai-suggest-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  /* 팁 버튼 */
+  .tip-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 20px;
+    border: 1.5px solid var(--accent-green); background: transparent;
+    color: var(--accent-green); font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+  }
+  .tip-btn:hover { background: var(--accent-green); color: white; }
+
+  /* 성취기준 분석 버튼 */
+  .std-analyze-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 10px 18px; border-radius: var(--radius-sm);
+    border: 2px solid var(--primary); background: var(--primary-pale);
+    color: var(--primary); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; font-family: inherit;
+    margin-top: 12px; width: 100%;
+    justify-content: center;
+  }
+  .std-analyze-btn:hover { background: var(--primary); color: white; }
+
+  /* 팁 모달 */
+  .tip-modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 1000;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .tip-modal-overlay.open { display: flex; }
+  .tip-modal {
+    background: var(--surface); border-radius: 16px;
+    max-width: 720px; width: 100%; max-height: 85vh;
+    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    animation: modal-in 0.2s ease;
+  }
+  @keyframes modal-in { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+  .tip-modal-header {
+    position: sticky; top: 0; background: var(--primary);
+    color: white; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 16px 16px 0 0;
+  }
+  .tip-modal-header h2 { font-size: 16px; margin: 0; }
+  .tip-modal-close {
+    background: rgba(255,255,255,0.2); border: none; color: white;
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .tip-modal-body { padding: 24px; }
+  .tip-section { margin-bottom: 24px; }
+  .tip-section h3 {
+    font-size: 14px; font-weight: 700; color: var(--primary);
+    border-left: 4px solid var(--primary); padding-left: 10px;
+    margin-bottom: 12px;
+  }
+  .tip-section h4 { font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: var(--text1); }
+  .tip-section p, .tip-section li { font-size: 13px; line-height: 1.8; color: var(--text2); margin: 0 0 6px; }
+  .tip-section ul { padding-left: 18px; margin: 0; }
+  .tip-section code {
+    background: var(--surface2); padding: 2px 6px; border-radius: 4px;
+    font-family: monospace; font-size: 12px; color: var(--primary);
+  }
+  .tip-box {
+    background: var(--surface2); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 10px; font-size: 13px;
+    line-height: 1.7; color: var(--text2); border-left: 3px solid var(--primary-light);
+  }
+  .tip-arrow {
+    text-align: center; font-size: 13px; color: var(--text3);
+    margin: 4px 0; font-style: italic;
+  }
+  .tip-good { color: #27ae60; font-weight: 600; }
+  .tip-bad { color: #e74c3c; }
+  .tip-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  .tip-table th { background: var(--primary); color: white; padding: 8px 12px; text-align: left; }
+  .tip-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  .tip-template-box {
+    background: var(--primary-pale); border: 1px solid var(--primary-light);
+    border-radius: 8px; padding: 12px 16px; font-size: 13px;
+    color: var(--text2); line-height: 1.8;
+  }
+  .tip-routine {
+    background: #fff8e1; border: 1px solid #f9ca24; border-radius: 10px;
+    padding: 14px 18px; font-size: 13px; line-height: 1.9;
+  }
+  [data-theme="dark"] .tip-routine { background: #2a2510; border-color: #7a6010; }
+  [data-theme="dark"] .tip-modal { background: var(--surface); }
+
+  /* 성취기준 분석 결과 */
+  .std-analysis-result {
+    margin-top: 14px; border: 2px solid var(--primary-light);
+    border-radius: 10px; overflow: hidden; display: none;
+  }
+  .std-analysis-result.open { display: block; }
+  .std-analysis-header {
+    background: var(--primary); color: white;
+    padding: 10px 16px; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .std-analysis-body { padding: 16px; background: var(--surface2); }
+  .std-analysis-item { margin-bottom: 14px; }
+  .std-analysis-item:last-child { margin-bottom: 0; }
+  .std-analysis-label {
+    font-size: 11px; font-weight: 700; color: var(--primary);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+  }
+  .std-analysis-text {
+    font-size: 13px; line-height: 1.7; color: var(--text2);
+    background: var(--surface); border-radius: 8px; padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+  .std-analysis-apply-btn {
+    margin-top: 6px; padding: 4px 12px; border-radius: 6px;
+    border: 1px solid var(--primary); background: transparent;
+    color: var(--primary); font-size: 11px; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .std-analysis-apply-btn:hover { background: var(--primary); color: white; }
+
   .suggest-box {
     margin-top: 10px;
     border: 1.5px solid var(--primary-light);
@@ -1121,7 +1240,10 @@
             <span style="background:var(--primary);color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">1</span>
             <span class="card-title">1단계: 바라는 결과 확인</span>
           </div>
-          <span style="font-size:12px;color:var(--text3);">Desired Results</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="tip-btn" onclick="openTipModal()">💡 작성 팁</button>
+            <span style="font-size:12px;color:var(--text3);">Desired Results</span>
+          </div>
         </div>
         <div class="card-body">
           <div class="form-row">
@@ -1129,6 +1251,14 @@
             <div class="form-hint">과목을 선택한 뒤 학년군별 성취기준을 선택하세요 (과목별·복수 선택 가능)</div>
             <div id="bw-std-container">
               <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>
+            </div>
+            <!-- 성취기준 기반 분석 버튼 -->
+            <button class="std-analyze-btn" onclick="analyzeStandards()">
+              🔍 선택한 성취기준으로 영속적 이해 · 본질적 질문 · 핵심 지식 및 기능 찾기
+            </button>
+            <div class="std-analysis-result" id="std-analysis-result">
+              <div class="std-analysis-header">🤖 <span class="ai-badge">✨ AI</span> &nbsp;성취기준 분석 결과</div>
+              <div class="std-analysis-body" id="std-analysis-body">분석 중...</div>
             </div>
           </div>
           <div class="form-row">
@@ -1799,6 +1929,118 @@
         <div class="ai-result-area md-rendered" id="core-idea-ai-text">생성 중...</div>
       </div>
     </div>
+    <!-- ===== 팁 모달 ===== -->
+    <div class="tip-modal-overlay" id="tip-modal-overlay" onclick="if(event.target===this)closeTipModal()">
+      <div class="tip-modal">
+        <div class="tip-modal-header">
+          <h2>💡 영속적 이해 &amp; 본질적 질문 작성 팁</h2>
+          <button class="tip-modal-close" onclick="closeTipModal()">✕</button>
+        </div>
+        <div class="tip-modal-body">
+
+          <div class="tip-section">
+            <h3>🔑 핵심 전제 먼저</h3>
+            <div class="tip-box">
+              <strong>영속적 이해</strong> = "이 단원이 끝나도 평생 기억할 만한 통찰"<br>
+              <strong>본질적 질문</strong> = "그 통찰로 이끄는 열린 질문"<br><br>
+              둘은 짝꿍 관계예요. <strong>영속적 이해를 먼저 잡으면</strong> 본질적 질문은 자연스럽게 따라옵니다.
+            </div>
+          </div>
+
+          <div class="tip-section">
+            <h3>💡 영속적 이해 떠올리는 팁</h3>
+            <h4>Tip 1. "So what?" 질문을 3번 던진다</h4>
+            <p>성취기준을 보고 계속 <strong>"그래서 뭐가 중요한데?"</strong>를 반복합니다.</p>
+            <div class="tip-box">
+              성취기준: <em>법의 의미와 역할을 이해한다</em><br>
+              <span style="color:var(--text3)">→ "그래서 뭐?"</span> 법이 뭔지 알면 좋지<br>
+              <span style="color:var(--text3)">→ "그래서 뭐?"</span> 법이 없으면 공동체가 무너지잖아<br>
+              <span style="color:var(--text3)">→ "그래서 뭐?"</span> 법은 힘센 사람이 아닌 모두를 위해 존재해야 해<br><br>
+              <span class="tip-good">💡 영속적 이해: "법은 공동체 구성원 모두의 권리를 지키기 위해 존재한다"</span>
+            </div>
+            <p style="font-size:12px;color:var(--text3);">3번째쯤 나오는 답이 대부분 영속적 이해예요.</p>
+
+            <h4>Tip 2. "전문가라면 뭐라고 말할까?" 상상하기</h4>
+            <p>그 교과의 전문가(법학자, 수학자, 생태학자 등)가 이 주제의 핵심을 한 문장으로 말한다면?</p>
+            <div class="tip-box">
+              수학 - 분수 단원 → 수학자라면? <span class="tip-good">"크기는 절대값이 아니라 관계로 결정된다"</span><br>
+              과학 - 생태계 단원 → 생태학자라면? <span class="tip-good">"모든 생물은 서로 연결되어 있고, 하나의 변화가 전체에 영향을 미친다"</span>
+            </div>
+
+            <h4>Tip 3. "이것을 모르면 어떤 실수를 할까?" 역방향 생각</h4>
+            <div class="tip-box">
+              인권 단원에서 모르면? <span class="tip-bad">"인권은 착한 사람만 누리는 것"</span><br>
+              → 그 반대가 영속적 이해: <span class="tip-good">"인권은 태어나는 순간 누구에게나 주어지는 보편적 권리다"</span>
+            </div>
+
+            <h4>Tip 4. "어른이 되어서도 쓸 지식인가?" 필터링</h4>
+            <div class="tip-box">
+              <span class="tip-bad">❌ 시험용: "헌법 제10조의 내용을 안다"</span><br>
+              <span class="tip-good">✅ 영속적: "나의 권리를 알고 지키는 사람이 민주주의를 만든다"</span>
+            </div>
+          </div>
+
+          <div class="tip-section">
+            <h3>💡 본질적 질문 만드는 팁</h3>
+            <h4>Tip 5. 영속적 이해 문장을 "의문문"으로 뒤집기</h4>
+            <table class="tip-table">
+              <thead><tr><th>영속적 이해</th><th>본질적 질문</th></tr></thead>
+              <tbody>
+                <tr><td>법은 모두의 권리를 지키기 위해 존재한다</td><td>공동체에서 법이 없다면 어떤 일이 벌어질까?</td></tr>
+                <tr><td>생물은 서로 연결되어 있다</td><td>한 생물의 사라짐이 나에게 어떤 영향을 미칠까?</td></tr>
+                <tr><td>수는 관계 속에서 의미를 갖는다</td><td>같은 숫자인데 왜 상황에 따라 크기가 달라질까?</td></tr>
+              </tbody>
+            </table>
+
+            <h4>Tip 6. 정답이 하나가 아닌 질문인지 체크</h4>
+            <div class="tip-box">
+              <span class="tip-bad">❌ 나쁜 예 (답이 하나): "헌법이 만들어진 연도는?"</span><br>
+              <span class="tip-bad">❌ 나쁜 예 (너무 광범위): "인생이란 무엇인가?"</span><br>
+              <span class="tip-good">✅ 좋은 예: "규칙이 없는 세상은 더 자유로울까, 더 위험할까?"</span><br>
+              <span class="tip-good">✅ 좋은 예: "누군가의 자유가 다른 사람의 권리를 침해한다면 어떻게 해야 할까?"</span>
+            </div>
+
+            <h4>Tip 7. 학생 언어로 바꾸기</h4>
+            <div class="tip-box">
+              <span class="tip-bad">❌ 교사 언어: "공동체의 항상성 유지를 위한 규범의 기능은 무엇인가?"</span><br>
+              <span class="tip-good">✅ 학생 언어: "우리 반에 규칙이 없다면 어떻게 될까?"</span>
+            </div>
+          </div>
+
+          <div class="tip-section">
+            <h3>🗂️ 교과별 즉시 활용 템플릿</h3>
+            <h4>영속적 이해 템플릿</h4>
+            <div class="tip-template-box">
+              "___은/는 단순히 ___이 아니라, <strong>___을 위해 존재한다</strong>"<br>
+              "___은/는 ___할 때 비로소 <strong>___해진다</strong>"<br>
+              "___이 변하면 <strong>___도 변한다</strong>"
+            </div>
+            <h4>본질적 질문 템플릿</h4>
+            <div class="tip-template-box">
+              "___이 없다면 어떻게 될까?"<br>
+              "___은 항상 옳은가?"<br>
+              "왜 ___한 사람도 ___을 누려야 할까?"<br>
+              "___과 ___ 중 무엇이 더 중요한가?"
+            </div>
+          </div>
+
+          <div class="tip-section">
+            <h3>⚡ 현장에서 바로 쓰는 1분 루틴</h3>
+            <div class="tip-routine">
+              <strong>① 성취기준 읽기</strong> (30초)<br>
+              <strong>② "So what?"을 속으로 3번</strong> (20초)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="tip-good">영속적 이해 완성</span><br>
+              <strong>③ 그 문장을 의문문으로 뒤집기</strong> (10초)<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="tip-good">본질적 질문 완성</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- ===== PAGE: 평어 생성 ===== -->
     <div id="page-pyeongeon" class="page">
       <h1 class="page-title">📝 평어 생성</h1>
@@ -4597,6 +4839,139 @@ function showToast(msg, duration = 2500) {
 
 // 공유링크 자동 로드
 window.addEventListener("load", loadSharedDesign);
+
+// ═══════════════════════════════════════════════════
+//  팁 모달
+// ═══════════════════════════════════════════════════
+function openTipModal() {
+  document.getElementById('tip-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTipModal() {
+  document.getElementById('tip-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeTipModal();
+});
+
+// ═══════════════════════════════════════════════════
+//  성취기준 기반 영속적 이해 · 본질적 질문 · 핵심 지식 분석
+// ═══════════════════════════════════════════════════
+async function analyzeStandards() {
+  if (!(await checkAiEnabled())) return;
+
+  const checkedStds = getBwCheckedStandards();
+  if (!checkedStds) {
+    alert('먼저 성취기준을 하나 이상 선택해 주세요.');
+    return;
+  }
+
+  const subName = getBwSubjectNames() || '(교과 미선택)';
+  const unit = document.getElementById('bw-unit').value;
+
+  const resultDiv = document.getElementById('std-analysis-result');
+  const bodyDiv = document.getElementById('std-analysis-body');
+  resultDiv.classList.add('open');
+  bodyDiv.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:8px;">⏳ 성취기준을 분석하고 있습니다...</div>';
+  resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const prompt = `당신은 2022 개정 교육과정 기반 백워드 설계(UbD) 전문가 교사입니다.
+아래 성취기준을 깊이 분석하여 백워드 설계 1단계에 필요한 세 가지 요소를 도출해 주세요.
+
+[교과] ${subName}
+${unit ? `[단원/주제] ${unit}` : ''}
+[선택된 성취기준]
+${checkedStds}
+
+다음 형식으로 정확히 답변해 주세요. 각 섹션은 ###으로 구분합니다.
+
+###EU###
+영속적 이해(Enduring Understanding) 2~3개를 작성하세요.
+- 학생이 단원 후 평생 기억해야 할 핵심 통찰
+- 완전한 문장으로 서술 (주어+동사 형태)
+- 단순 사실이 아닌 일반화된 이해
+각 항목은 번호(1. 2. 3.)로 구분
+
+###EQ###
+본질적 질문(Essential Question) 2~3개를 작성하세요.
+- 깊은 사고와 토론을 유발하는 열린 질문
+- 정답이 하나가 아닌 질문
+- 학생이 실제로 궁금해할 언어로 작성
+각 항목은 번호(1. 2. 3.)로 구분
+
+###KS###
+핵심 지식 & 기능(Key Knowledge & Skills)을 작성하세요.
+[지식] 학생이 알아야 할 개념, 원리, 사실 (3~5개)
+[기능] 학생이 할 수 있어야 할 것 (3~5개)`;
+
+  try {
+    const res = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, maxTokens: 2000 })
+    });
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const line of decoder.decode(value).split('\n')) {
+        if (!line.startsWith('data:')) continue;
+        const d = line.slice(5).trim();
+        if (d === '[DONE]') break;
+        try {
+          const j = JSON.parse(d);
+          if (j.type === 'content_block_delta') text += j.delta?.text || '';
+        } catch {}
+      }
+    }
+
+    // 파싱
+    const euMatch = text.match(/###EU###([\s\S]*?)(?=###EQ###|$)/);
+    const eqMatch = text.match(/###EQ###([\s\S]*?)(?=###KS###|$)/);
+    const ksMatch = text.match(/###KS###([\s\S]*?)$/);
+
+    const euText = euMatch ? euMatch[1].trim() : '';
+    const eqText = eqMatch ? eqMatch[1].trim() : '';
+    const ksText = ksMatch ? ksMatch[1].trim() : '';
+
+    bodyDiv.innerHTML = `
+      <div class="std-analysis-item">
+        <div class="std-analysis-label">🔍 영속적 이해 (Enduring Understanding)</div>
+        <div class="std-analysis-text" id="sa-eu-text">${euText.replace(/\n/g,'<br>')}</div>
+        <button class="std-analysis-apply-btn" onclick="applyAnalysis('eu', 'sa-eu-text')">📋 영속적 이해 입력란에 적용</button>
+      </div>
+      <div class="std-analysis-item">
+        <div class="std-analysis-label">❓ 본질적 질문 (Essential Question)</div>
+        <div class="std-analysis-text" id="sa-eq-text">${eqText.replace(/\n/g,'<br>')}</div>
+        <button class="std-analysis-apply-btn" onclick="applyAnalysis('eq', 'sa-eq-text')">📋 본질적 질문 입력란에 적용</button>
+      </div>
+      <div class="std-analysis-item">
+        <div class="std-analysis-label">📚 핵심 지식 &amp; 기능</div>
+        <div class="std-analysis-text" id="sa-ks-text">${ksText.replace(/\n/g,'<br>')}</div>
+        <button class="std-analysis-apply-btn" onclick="applyAnalysis('kk', 'sa-ks-text')">📋 핵심 지식·기능 입력란에 적용</button>
+      </div>
+    `;
+  } catch(e) {
+    bodyDiv.innerHTML = `<div style="color:#c0392b;font-size:13px;">오류: ${e.message}</div>`;
+  }
+}
+
+function applyAnalysis(fieldId, sourceId) {
+  const src = document.getElementById(sourceId);
+  const target = document.getElementById(`bw-${fieldId}`);
+  if (!src || !target) return;
+  // HTML → 순수 텍스트 변환
+  const text = src.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '').trim();
+  target.value = text;
+  target.style.borderColor = 'var(--primary)';
+  setTimeout(() => target.style.borderColor = '', 1500);
+  target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  showToast(`✅ ${fieldId === 'eu' ? '영속적 이해' : fieldId === 'eq' ? '본질적 질문' : '핵심 지식·기능'} 입력란에 적용됐습니다.`);
+}
 
 // ═══════════════════════════════════════════════════
 //  평어 생성
