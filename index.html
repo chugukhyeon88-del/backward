@@ -1744,33 +1744,29 @@
       <div class="card">
         <div class="card-header"><div class="card-header-left"><span>⚙️</span><span class="card-title">기본 설정</span></div></div>
         <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-            <div class="form-row" style="margin:0;">
-              <label class="form-label">과목</label>
-              <select class="form-select" id="al-subject">
-                <option>사회</option><option>수학</option><option>과학</option>
-                <option>국어</option><option>영어</option><option>도덕</option>
-                <option>미술</option><option>음악</option><option>실과/기술가정</option><option>정보</option>
-              </select>
-            </div>
-            <div class="form-row" style="margin:0;">
-              <label class="form-label">학년군</label>
-              <select class="form-select" id="al-grade">
-                <option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option>
-                <option>중학교 1~3학년</option><option>고등학교</option>
-              </select>
+          <div class="form-row">
+            <label class="form-label">과목 선택 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div class="form-hint">과목을 클릭하여 추가하세요. 선택한 과목별로 성취기준을 선택할 수 있습니다.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="al-subject-tags">
+              <button type="button" class="subject-select-btn" data-sub="social" onclick="toggleAlSubjectTag(this)">🌍 사회</button>
+              <button type="button" class="subject-select-btn" data-sub="math" onclick="toggleAlSubjectTag(this)">📐 수학</button>
+              <button type="button" class="subject-select-btn" data-sub="science" onclick="toggleAlSubjectTag(this)">🔬 과학</button>
+              <button type="button" class="subject-select-btn" data-sub="korean" onclick="toggleAlSubjectTag(this)">📖 국어</button>
+              <button type="button" class="subject-select-btn" data-sub="english" onclick="toggleAlSubjectTag(this)">🔤 영어</button>
+              <button type="button" class="subject-select-btn" data-sub="moral" onclick="toggleAlSubjectTag(this)">🌱 도덕</button>
+              <button type="button" class="subject-select-btn" data-sub="art" onclick="toggleAlSubjectTag(this)">🎨 미술</button>
+              <button type="button" class="subject-select-btn" data-sub="music" onclick="toggleAlSubjectTag(this)">🎵 음악</button>
+              <button type="button" class="subject-select-btn" data-sub="tech" onclick="toggleAlSubjectTag(this)">🔧 실과/기술가정</button>
+              <button type="button" class="subject-select-btn" data-sub="info" onclick="toggleAlSubjectTag(this)">💻 정보</button>
             </div>
           </div>
+          <div id="al-std-container" style="margin-bottom:1rem;">
+            <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>
+          </div>
 
-          <div class="form-row" style="margin-top:1rem;">
+          <div class="form-row" style="margin-top:0.5rem;">
             <label class="form-label">단원/주제 (선택)</label>
             <input class="form-input" id="al-unit" placeholder="예: 우리 지역의 환경 문제와 해결 방안">
-          </div>
-
-          <div class="form-row">
-            <label class="form-label">성취기준 입력 <span style="font-size:11px;color:var(--text3);font-weight:400;">— 성취기준 코드와 내용을 입력하세요. 여러 개는 줄바꿈으로 구분합니다.</span></label>
-            <textarea class="form-textarea" id="al-standards" rows="6"
-              placeholder="예:&#10;[6사04-01] 지역의 환경 문제를 조사하고 원인과 해결 방안을 탐색한다.&#10;[6사04-02] 지역 문제를 해결하기 위한 주민 참여 방식과 절차를 파악한다.&#10;[6사04-03] 환경 보호와 경제 발전의 관계를 이해하고 지속 가능한 발전 방안을 제시한다."></textarea>
           </div>
 
           <div class="form-row">
@@ -3954,6 +3950,81 @@ function renderStandardsList(sub, grade) {
 // 선택된 과목 목록
 const bwSelectedSubjects = new Set();
 const rbSelectedSubjects = new Set();
+const alSelectedSubjects = new Set();
+
+function toggleAlSubjectTag(btn) {
+  const sub = btn.dataset.sub;
+  if (alSelectedSubjects.has(sub)) {
+    alSelectedSubjects.delete(sub);
+    btn.classList.remove('selected');
+  } else {
+    alSelectedSubjects.add(sub);
+    btn.classList.add('selected');
+  }
+  renderAlStdContainer();
+}
+
+function renderAlStdContainer() {
+  const container = document.getElementById('al-std-container');
+  if (alSelectedSubjects.size === 0) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const sub of alSelectedSubjects) {
+    const gradeSelect = `<select class="subject-std-grade" id="al-grade-${sub}" onchange="loadAlStandards('${sub}')">
+      ${gradeOptions.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}
+    </select>`;
+    html += `<div class="subject-std-block" id="al-std-block-${sub}">
+      <div class="subject-std-header">
+        <span class="subject-std-title">${subjectEmojis[sub]} ${subjectNames[sub]}</span>
+        ${gradeSelect}
+      </div>
+      <div class="subject-std-body" id="al-std-body-${sub}">
+        <p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">학년군을 선택하면 성취기준이 표시됩니다.</p>
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+  for (const sub of alSelectedSubjects) {
+    loadAlStandards(sub);
+  }
+}
+
+function loadAlStandards(sub) {
+  const gradeEl = document.getElementById(`al-grade-${sub}`);
+  const body = document.getElementById(`al-std-body-${sub}`);
+  if (!gradeEl || !body) return;
+  const grade = gradeEl.value;
+  const stds = (standardsData[sub] && standardsData[sub][grade]) || [];
+  if (!stds.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">해당 학년군 성취기준이 없습니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const s of stds) {
+    html += `<label class="std-checkbox-item">
+      <input type="checkbox" value="${s.code}" data-sub="${sub}" data-text="${s.text}">
+      <div class="std-checkbox-label">
+        <span class="std-checkbox-code">${s.code}</span> ${s.text}
+      </div>
+    </label>`;
+  }
+  body.innerHTML = html;
+}
+
+function getAlCheckedStandards() {
+  const result = [];
+  document.querySelectorAll('#al-std-container input[type=checkbox]:checked').forEach(c => {
+    const subName = subjectNames[c.dataset.sub] || c.dataset.sub;
+    result.push(`[${subName}] ${c.value}: ${c.dataset.text}`);
+  });
+  return result.join('\n');
+}
+
+function getAlSubjectNames() {
+  return [...alSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
+}
 
 function toggleRbSubjectTag(btn) {
   const sub = btn.dataset.sub;
@@ -4437,11 +4508,10 @@ window.addEventListener('DOMContentLoaded', () => {
 //  성취수준 제시 (과정중심 평가)
 // ═══════════════════════════════════════════════════
 async function generateAchievementLevel() {
-  const sub = document.getElementById('al-subject').value;
-  const grade = document.getElementById('al-grade').value;
+  const sub = getAlSubjectNames() || '(과목 미선택)';
   const unit = document.getElementById('al-unit').value;
-  const stds = document.getElementById('al-standards').value.trim();
-  if (!stds) { alert('성취기준을 입력하세요.'); return; }
+  const checkedStds = getAlCheckedStandards();
+  if (!checkedStds) { alert('성취기준을 하나 이상 선택해 주세요.'); return; }
 
   const methods = [];
   if (document.getElementById('al-method-obs').checked) methods.push('관찰평가');
@@ -4452,7 +4522,7 @@ async function generateAchievementLevel() {
   const format = document.querySelector('input[name="al-format"]:checked')?.value || 'table';
 
   // 성취기준 파싱 (줄별로)
-  const stdLines = stds.split('\n').map(s=>s.trim()).filter(s=>s);
+  const stdLines = checkedStds.split('\n').map(s=>s.trim()).filter(s=>s);
 
   const formatGuide = format === 'table'
     ? `마크다운 표 형식으로 작성하세요:
@@ -4470,7 +4540,7 @@ async function generateAchievementLevel() {
 다음 성취기준에 대한 성취수준(매우잘함/잘함/보통)을 작성하세요.
 
 [기본 정보]
-- 과목: ${sub} / 학년군: ${grade}${unit ? '\n- 단원/주제: ' + unit : ''}
+- 과목: ${sub}${unit ? '\n- 단원/주제: ' + unit : ''}
 - 평가 방법: ${methods.length ? methods.join(', ') : '미지정'}
 
 [성취기준]
@@ -4498,7 +4568,7 @@ ${formatGuide}
 
 function exportAchievementLevel() {
   const text = document.getElementById('al-ai-text').innerText;
-  const sub = document.getElementById('al-subject').value;
+  const sub = getAlSubjectNames() || '과목';
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text], {type:'text/plain;charset=utf-8'}));
   a.download = `성취수준_${sub}_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.txt`;
