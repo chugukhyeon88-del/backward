@@ -1828,16 +1828,26 @@
       <div class="card">
         <div class="card-header"><div class="card-header-left"><span>⚙️</span><span class="card-title">문항 설정</span></div></div>
         <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-            <div class="form-row" style="margin:0;"><label class="form-label">과목</label>
-              <select class="form-select" id="as-subject"><option>사회</option><option>수학</option><option>과학</option><option>국어</option><option>영어</option><option>도덕</option><option>미술</option><option>음악</option><option>실과/기술가정</option><option>정보</option></select>
-            </div>
-            <div class="form-row" style="margin:0;"><label class="form-label">학년군</label>
-              <select class="form-select" id="as-grade"><option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option><option>중학교 1~3학년</option><option>고등학교</option></select>
+          <div class="form-row">
+            <label class="form-label">과목 선택 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div class="form-hint">과목을 클릭하여 추가하세요. 선택한 과목별로 성취기준을 선택할 수 있습니다.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="as-subject-tags">
+              <button type="button" class="subject-select-btn" data-sub="social" onclick="toggleAsSubjectTag(this)">🌍 사회</button>
+              <button type="button" class="subject-select-btn" data-sub="math" onclick="toggleAsSubjectTag(this)">📐 수학</button>
+              <button type="button" class="subject-select-btn" data-sub="science" onclick="toggleAsSubjectTag(this)">🔬 과학</button>
+              <button type="button" class="subject-select-btn" data-sub="korean" onclick="toggleAsSubjectTag(this)">📖 국어</button>
+              <button type="button" class="subject-select-btn" data-sub="english" onclick="toggleAsSubjectTag(this)">🔤 영어</button>
+              <button type="button" class="subject-select-btn" data-sub="moral" onclick="toggleAsSubjectTag(this)">🌱 도덕</button>
+              <button type="button" class="subject-select-btn" data-sub="art" onclick="toggleAsSubjectTag(this)">🎨 미술</button>
+              <button type="button" class="subject-select-btn" data-sub="music" onclick="toggleAsSubjectTag(this)">🎵 음악</button>
+              <button type="button" class="subject-select-btn" data-sub="tech" onclick="toggleAsSubjectTag(this)">🔧 실과/기술가정</button>
+              <button type="button" class="subject-select-btn" data-sub="info" onclick="toggleAsSubjectTag(this)">💻 정보</button>
             </div>
           </div>
-          <div class="form-row" style="margin-top:1rem;"><label class="form-label">단원/주제</label><input class="form-input" id="as-unit" placeholder="예: 우리 지역의 환경 문제"></div>
-          <div class="form-row"><label class="form-label">성취기준</label><textarea class="form-textarea" id="as-standards" rows="3" placeholder="평가 문항을 생성할 성취기준을 입력하세요."></textarea></div>
+          <div id="as-std-container" style="margin-bottom:1rem;">
+            <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>
+          </div>
+          <div class="form-row" style="margin-top:0.5rem;"><label class="form-label">단원/주제</label><input class="form-input" id="as-unit" placeholder="예: 우리 지역의 환경 문제"></div>
           <div class="form-row"><label class="form-label">문항 유형 및 수량</label>
             <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:4px;">
               <label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="as-mc" checked> 선택형 <input type="number" id="as-mc-num" value="5" min="1" max="10" style="width:50px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;background:var(--surface2);color:var(--text);">개</label>
@@ -2373,10 +2383,10 @@ function exportRubric() {
 //  평가 문항 생성
 // ═══════════════════════════════════════════════════
 async function generateAssessment() {
-  const sub = document.getElementById('as-subject').value;
-  const grade = document.getElementById('as-grade').value;
+  const sub = getAsSubjectNames() || '(과목 미선택)';
   const unit = document.getElementById('as-unit').value;
-  const stds = document.getElementById('as-standards').value;
+  const checkedStds = getAsCheckedStandards();
+  if (!checkedStds) { alert('성취기준을 하나 이상 선택해 주세요.'); return; }
   const diff = document.querySelector('input[name="as-difficulty"]:checked')?.value || 'mixed';
   const dNames = {mixed:'혼합(하/중/상)',low:'기초(하)',mid:'중간(중)',high:'심화(상)'};
 
@@ -2388,8 +2398,9 @@ async function generateAssessment() {
 
   const prompt = `당신은 2022 개정 교육과정 평가 전문가입니다. 다음 조건으로 평가 문항을 생성하세요.
 
-과목: ${sub} / 학년군: ${grade} / 단원: ${unit||'(미입력)'} / 난이도: ${dNames[diff]}
-성취기준: ${stds||'(미입력)'}
+과목: ${sub} / 단원: ${unit||'(미입력)'} / 난이도: ${dNames[diff]}
+성취기준:
+${checkedStds}
 생성 문항: ${qTypes.join(', ')}
 
 각 문항 형식:
@@ -3951,6 +3962,81 @@ function renderStandardsList(sub, grade) {
 const bwSelectedSubjects = new Set();
 const rbSelectedSubjects = new Set();
 const alSelectedSubjects = new Set();
+const asSelectedSubjects = new Set();
+
+function toggleAsSubjectTag(btn) {
+  const sub = btn.dataset.sub;
+  if (asSelectedSubjects.has(sub)) {
+    asSelectedSubjects.delete(sub);
+    btn.classList.remove('selected');
+  } else {
+    asSelectedSubjects.add(sub);
+    btn.classList.add('selected');
+  }
+  renderAsStdContainer();
+}
+
+function renderAsStdContainer() {
+  const container = document.getElementById('as-std-container');
+  if (asSelectedSubjects.size === 0) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const sub of asSelectedSubjects) {
+    const gradeSelect = `<select class="subject-std-grade" id="as-grade-${sub}" onchange="loadAsStandards('${sub}')">
+      ${gradeOptions.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}
+    </select>`;
+    html += `<div class="subject-std-block" id="as-std-block-${sub}">
+      <div class="subject-std-header">
+        <span class="subject-std-title">${subjectEmojis[sub]} ${subjectNames[sub]}</span>
+        ${gradeSelect}
+      </div>
+      <div class="subject-std-body" id="as-std-body-${sub}">
+        <p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">학년군을 선택하면 성취기준이 표시됩니다.</p>
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+  for (const sub of asSelectedSubjects) {
+    loadAsStandards(sub);
+  }
+}
+
+function loadAsStandards(sub) {
+  const gradeEl = document.getElementById(`as-grade-${sub}`);
+  const body = document.getElementById(`as-std-body-${sub}`);
+  if (!gradeEl || !body) return;
+  const grade = gradeEl.value;
+  const stds = (standardsData[sub] && standardsData[sub][grade]) || [];
+  if (!stds.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">해당 학년군 성취기준이 없습니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const s of stds) {
+    html += `<label class="std-checkbox-item">
+      <input type="checkbox" value="${s.code}" data-sub="${sub}" data-text="${s.text}">
+      <div class="std-checkbox-label">
+        <span class="std-checkbox-code">${s.code}</span> ${s.text}
+      </div>
+    </label>`;
+  }
+  body.innerHTML = html;
+}
+
+function getAsCheckedStandards() {
+  const result = [];
+  document.querySelectorAll('#as-std-container input[type=checkbox]:checked').forEach(c => {
+    const subName = subjectNames[c.dataset.sub] || c.dataset.sub;
+    result.push(`[${subName}] ${c.value}: ${c.dataset.text}`);
+  });
+  return result.join('\n');
+}
+
+function getAsSubjectNames() {
+  return [...asSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
+}
 
 function toggleAlSubjectTag(btn) {
   const sub = btn.dataset.sub;
