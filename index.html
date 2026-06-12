@@ -1690,19 +1690,31 @@
       <div class="card">
         <div class="card-header"><div class="card-header-left"><span>⚙️</span><span class="card-title">기본 설정</span></div></div>
         <div class="card-body">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
-            <div class="form-row" style="margin:0;"><label class="form-label">과목</label>
-              <select class="form-select" id="rb-subject"><option>사회</option><option>수학</option><option>과학</option><option>국어</option><option>영어</option><option>도덕</option><option>미술</option><option>음악</option><option>실과/기술가정</option><option>정보</option></select>
+          <div class="form-row">
+            <label class="form-label">과목 선택 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div class="form-hint">과목을 클릭하여 추가하세요. 선택한 과목별로 성취기준을 선택할 수 있습니다.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;" id="rb-subject-tags">
+              <button type="button" class="subject-select-btn" data-sub="social" onclick="toggleRbSubjectTag(this)">🌍 사회</button>
+              <button type="button" class="subject-select-btn" data-sub="math" onclick="toggleRbSubjectTag(this)">📐 수학</button>
+              <button type="button" class="subject-select-btn" data-sub="science" onclick="toggleRbSubjectTag(this)">🔬 과학</button>
+              <button type="button" class="subject-select-btn" data-sub="korean" onclick="toggleRbSubjectTag(this)">📖 국어</button>
+              <button type="button" class="subject-select-btn" data-sub="english" onclick="toggleRbSubjectTag(this)">🔤 영어</button>
+              <button type="button" class="subject-select-btn" data-sub="moral" onclick="toggleRbSubjectTag(this)">🌱 도덕</button>
+              <button type="button" class="subject-select-btn" data-sub="art" onclick="toggleRbSubjectTag(this)">🎨 미술</button>
+              <button type="button" class="subject-select-btn" data-sub="music" onclick="toggleRbSubjectTag(this)">🎵 음악</button>
+              <button type="button" class="subject-select-btn" data-sub="tech" onclick="toggleRbSubjectTag(this)">🔧 실과/기술가정</button>
+              <button type="button" class="subject-select-btn" data-sub="info" onclick="toggleRbSubjectTag(this)">💻 정보</button>
             </div>
-            <div class="form-row" style="margin:0;"><label class="form-label">학년군</label>
-              <select class="form-select" id="rb-grade"><option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option><option>중학교 1~3학년</option><option>고등학교</option></select>
-            </div>
+          </div>
+          <div id="rb-std-container" style="margin-bottom:1rem;">
+            <p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
             <div class="form-row" style="margin:0;"><label class="form-label">평가 수준</label>
               <select class="form-select" id="rb-levels"><option value="4">4단계</option><option value="3">3단계</option><option value="5">5단계</option></select>
             </div>
           </div>
           <div class="form-row" style="margin-top:1rem;"><label class="form-label">수행과제명</label><input class="form-input" id="rb-task" placeholder="예: 지역 환경 문제 조사 보고서 작성"></div>
-          <div class="form-row"><label class="form-label">관련 성취기준</label><textarea class="form-textarea" id="rb-standards" rows="2" placeholder="관련 성취기준을 입력하세요."></textarea></div>
           <div class="form-row"><label class="form-label">평가 영역 (쉼표 구분)</label><input class="form-input" id="rb-criteria" placeholder="예: 내용의 정확성, 자료 활용, 논리적 구성, 발표 능력"></div>
         </div>
       </div>
@@ -2328,18 +2340,21 @@ function exportLessonPlan() {
 //  수행평가 루브릭
 // ═══════════════════════════════════════════════════
 async function generateRubric() {
-  const sub = document.getElementById('rb-subject').value;
-  const grade = document.getElementById('rb-grade').value;
+  const subName = getRbSubjectNames() || '(과목 미선택)';
   const levels = document.getElementById('rb-levels').value;
   const task = document.getElementById('rb-task').value;
-  const stds = document.getElementById('rb-standards').value;
+  const checkedStds = getRbCheckedStandards();
   const criteria = document.getElementById('rb-criteria').value;
   const lLabels = {'4':'매우잘함(4)/잘함(3)/보통(2)/미흡(1)','3':'우수(3)/보통(2)/미흡(1)','5':'탁월(5)/우수(4)/보통(3)/미흡(2)/기초미달(1)'};
 
+  if (!checkedStds) { alert('성취기준을 하나 이상 선택해 주세요.'); return; }
+
   const prompt = `당신은 2022 개정 교육과정 평가 전문가입니다. 다음 조건으로 수행평가 루브릭을 작성하세요.
 
-과목: ${sub} / 학년군: ${grade} / 수행과제: ${task||'(미입력)'}
-평가 수준: ${lLabels[levels]} / 성취기준: ${stds||'(미입력)'}
+과목: ${subName} / 수행과제: ${task||'(미입력)'}
+평가 수준: ${lLabels[levels]}
+성취기준:
+${checkedStds}
 평가 영역: ${criteria||'자동 구성'}
 
 다음 형식의 마크다운 표 루브릭을 작성하세요:
@@ -2355,7 +2370,7 @@ function exportRubric() {
   const text = document.getElementById('rubric-ai-text').innerText;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
-  a.download = `루브릭_${document.getElementById('rb-subject').value}.txt`; a.click();
+  a.download = `루브릭_${getRbSubjectNames()||'과목'}.txt`; a.click();
 }
 
 // ═══════════════════════════════════════════════════
@@ -3938,6 +3953,81 @@ function renderStandardsList(sub, grade) {
 
 // 선택된 과목 목록
 const bwSelectedSubjects = new Set();
+const rbSelectedSubjects = new Set();
+
+function toggleRbSubjectTag(btn) {
+  const sub = btn.dataset.sub;
+  if (rbSelectedSubjects.has(sub)) {
+    rbSelectedSubjects.delete(sub);
+    btn.classList.remove('selected');
+  } else {
+    rbSelectedSubjects.add(sub);
+    btn.classList.add('selected');
+  }
+  renderRbStdContainer();
+}
+
+function renderRbStdContainer() {
+  const container = document.getElementById('rb-std-container');
+  if (rbSelectedSubjects.size === 0) {
+    container.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:1rem;">위에서 과목을 선택하면 성취기준이 표시됩니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const sub of rbSelectedSubjects) {
+    const gradeSelect = `<select class="subject-std-grade" id="rb-grade-${sub}" onchange="loadRbStandards('${sub}')">
+      ${gradeOptions.map(g => `<option value="${g.value}">${g.label}</option>`).join('')}
+    </select>`;
+    html += `<div class="subject-std-block" id="rb-std-block-${sub}">
+      <div class="subject-std-header">
+        <span class="subject-std-title">${subjectEmojis[sub]} ${subjectNames[sub]}</span>
+        ${gradeSelect}
+      </div>
+      <div class="subject-std-body" id="rb-std-body-${sub}">
+        <p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">학년군을 선택하면 성취기준이 표시됩니다.</p>
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+  for (const sub of rbSelectedSubjects) {
+    loadRbStandards(sub);
+  }
+}
+
+function loadRbStandards(sub) {
+  const gradeEl = document.getElementById(`rb-grade-${sub}`);
+  const body = document.getElementById(`rb-std-body-${sub}`);
+  if (!gradeEl || !body) return;
+  const grade = gradeEl.value;
+  const stds = (standardsData[sub] && standardsData[sub][grade]) || [];
+  if (!stds.length) {
+    body.innerHTML = '<p style="color:var(--text3);font-size:13px;text-align:center;padding:0.5rem;">해당 학년군 성취기준이 없습니다.</p>';
+    return;
+  }
+  let html = '';
+  for (const s of stds) {
+    html += `<label class="std-checkbox-item">
+      <input type="checkbox" value="${s.code}" data-sub="${sub}" data-text="${s.text}">
+      <div class="std-checkbox-label">
+        <span class="std-checkbox-code">${s.code}</span> ${s.text}
+      </div>
+    </label>`;
+  }
+  body.innerHTML = html;
+}
+
+function getRbCheckedStandards() {
+  const result = [];
+  document.querySelectorAll('#rb-std-container input[type=checkbox]:checked').forEach(c => {
+    const subName = subjectNames[c.dataset.sub] || c.dataset.sub;
+    result.push(`[${subName}] ${c.value}: ${c.dataset.text}`);
+  });
+  return result.join('\n');
+}
+
+function getRbSubjectNames() {
+  return [...rbSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
+}
 
 const subjectNames = {social:'사회',math:'수학',science:'과학',korean:'국어',english:'영어',moral:'도덕',art:'미술',music:'음악',tech:'실과/기술가정',info:'정보'};
 const subjectEmojis = {social:'🌍',math:'📐',science:'🔬',korean:'📖',english:'🔤',moral:'🌱',art:'🎨',music:'🎵',tech:'🔧',info:'💻'};
