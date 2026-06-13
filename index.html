@@ -1094,6 +1094,9 @@
     </div>
     <div class="nav-section">
       <div class="nav-section-title">수업 설계</div>
+      <div class="nav-item" onclick="navigate('curriculum-recompose')">
+        <span class="icon">📂</span> 교육과정 재구성
+      </div>
       <div class="nav-item" onclick="navigate('backward')">
         <span class="icon">🔄</span> 백워드 설계
       </div>
@@ -1211,6 +1214,113 @@
         <div id="std-music"></div>
         <div id="std-tech"></div>
         <div id="std-info"></div>
+      </div>
+    </div>
+
+    <!-- ===== 교육과정 재구성 ===== -->
+    <div id="page-curriculum-recompose" class="page">
+      <h1 class="page-title">교육과정 재구성</h1>
+      <p class="page-desc">학교 자율시간 또는 교사가 구성한 교육과정 문서를 업로드하면 AI가 백워드 설계로 재구성해 드립니다.</p>
+
+      <div class="info-box">
+        <strong>활용 방법</strong>: PDF 또는 텍스트로 교육과정 문서를 입력하면 AI가 성취기준·단원 목표·수행과제·평가 계획을 백워드 설계 형식으로 재구성합니다.
+        재구성 결과를 <strong>백워드 설계 페이지에 바로 적용</strong>할 수 있습니다.
+      </div>
+
+      <!-- 기본 설정 -->
+      <div class="card">
+        <div class="card-header"><div class="card-header-left"><span>⚙️</span><span class="card-title">기본 정보</span></div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;">
+            <div class="form-row" style="margin:0;">
+              <label class="form-label">과목</label>
+              <select class="form-select" id="cr-subject">
+                <option>사회</option><option>수학</option><option>과학</option><option>국어</option>
+                <option>영어</option><option>도덕</option><option>미술</option><option>음악</option>
+                <option>실과/기술가정</option><option>정보</option><option>학교 자율시간</option><option>기타</option>
+              </select>
+            </div>
+            <div class="form-row" style="margin:0;">
+              <label class="form-label">학년군</label>
+              <select class="form-select" id="cr-grade">
+                <option>초등 1~2학년</option><option>초등 3~4학년</option><option>초등 5~6학년</option>
+                <option>중학교 1~3학년</option><option>고등학교</option>
+              </select>
+            </div>
+            <div class="form-row" style="margin:0;">
+              <label class="form-label">수업 차시</label>
+              <input class="form-input" id="cr-hours" placeholder="예: 10차시" value="10차시">
+            </div>
+          </div>
+          <div class="form-row" style="margin-top:1rem;">
+            <label class="form-label">재구성 방향 <span style="font-weight:400;color:var(--text3);font-size:12px;">(선택)</span></label>
+            <input class="form-input" id="cr-direction" placeholder="예: 프로젝트 학습 중심으로 / 환경 주제 융합 / 지역사회 연계 등">
+          </div>
+        </div>
+      </div>
+
+      <!-- 문서 업로드 -->
+      <div class="card" style="margin-top:1rem;">
+        <div class="card-header"><div class="card-header-left"><span>📄</span><span class="card-title">교육과정 문서 입력</span></div></div>
+        <div class="card-body">
+          <div class="form-hint" style="margin-bottom:12px;">PDF 파일을 업로드하거나 교육과정 내용을 직접 붙여넣으세요. 두 방법 모두 사용 가능합니다.</div>
+
+          <!-- 드래그&드롭 업로드 존 -->
+          <div id="cr-drop-zone"
+            style="border:2px dashed var(--border);border-radius:10px;padding:2rem;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--surface2);"
+            onclick="document.getElementById('cr-pdf-input').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--primary)'"
+            ondragleave="this.style.borderColor='var(--border)'"
+            ondrop="handleCrPdfDrop(event)">
+            <div style="font-size:2rem;margin-bottom:8px;">📂</div>
+            <div style="color:var(--text2);font-size:14px;">PDF 파일을 여기에 드래그하거나 클릭하여 업로드</div>
+            <div style="color:var(--text3);font-size:12px;margin-top:4px;">지원 형식: PDF · 최대 50페이지</div>
+          </div>
+          <input type="file" id="cr-pdf-input" accept=".pdf" style="display:none;" onchange="handleCrPdfUpload(this.files)">
+          <div id="cr-pdf-status" style="margin-top:10px;font-size:13px;color:var(--text2);"></div>
+          <div id="cr-pdf-preview" style="margin-top:10px;"></div>
+
+          <!-- 직접 입력 -->
+          <div class="form-row" style="margin-top:16px;">
+            <label class="form-label">또는 교육과정 내용 직접 입력 / 붙여넣기</label>
+            <textarea class="form-textarea" id="cr-text-input" rows="8"
+              placeholder="학교 자율시간 운영 계획, 단원 지도 계획, 교사 교육과정 등 내용을 붙여넣으세요.&#10;&#10;예:&#10;[단원명] 우리 마을을 지켜요&#10;[목표] 지역 환경 문제를 파악하고 해결 방안을 제안한다&#10;[활동] 1. 마을 환경 조사 / 2. 문제 분석 / 3. 해결 방안 발표&#10;[차시] 8차시&#10;[평가] 보고서 작성 및 발표"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 재구성 옵션 -->
+      <div class="card" style="margin-top:1rem;">
+        <div class="card-header"><div class="card-header-left"><span>🔧</span><span class="card-title">재구성 옵션</span></div></div>
+        <div class="card-body">
+          <div class="form-row" style="margin:0;">
+            <label class="form-label">포함할 항목 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택)</span></label>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:8px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" id="cr-opt-eu" checked> 영속적 이해 제안</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" id="cr-opt-eq" checked> 본질적 질문 제안</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" id="cr-opt-pt" checked> 수행과제 재설계</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" id="cr-opt-plan" checked> 차시별 학습 활동 계획</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;"><input type="checkbox" id="cr-opt-rubric"> 루브릭(평가 기준) 제안</label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generateCurriculumRecompose()">🤖 AI로 백워드 설계 재구성</button>
+        <button class="btn btn-outline" onclick="clearCurriculumRecompose()">🗑️ 초기화</button>
+      </div>
+
+      <!-- 결과 영역 -->
+      <div id="cr-result" style="display:none;" class="result-section">
+        <div class="result-title" style="display:flex;align-items:center;justify-content:space-between;">
+          <span>🤖 <span class="ai-badge">✨ AI</span> &nbsp;백워드 설계 재구성 결과</span>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-sync" onclick="applyCrToBackward()" style="font-size:12px;padding:6px 12px;">⬇ 백워드 설계에 적용</button>
+            <button class="copy-btn" onclick="copyResult('cr-ai-text')">복사</button>
+          </div>
+        </div>
+        <div class="ai-result-area md-rendered" id="cr-ai-text">생성 중...</div>
       </div>
     </div>
 
@@ -5491,6 +5601,161 @@ function applyAnalysis(fieldId, sourceId) {
 // ═══════════════════════════════════════════════════
 
 let pePdfText = ''; // 추출된 PDF 텍스트
+
+// ═══════════════════════════════════════════════════
+//  교육과정 재구성
+// ═══════════════════════════════════════════════════
+
+let crPdfText = '';
+
+async function handleCrPdfUpload(files) {
+  if (!files || !files[0]) return;
+  const file = files[0];
+  if (file.type !== 'application/pdf') { alert('PDF 파일만 업로드 가능합니다.'); return; }
+  const status = document.getElementById('cr-pdf-status');
+  status.innerHTML = `⏳ <strong>${file.name}</strong> 처리 중...`;
+  try {
+    crPdfText = await extractPdfText(file);
+    const preview = document.getElementById('cr-pdf-preview');
+    const previewText = crPdfText.length > 500 ? crPdfText.slice(0, 500) + '...' : crPdfText;
+    preview.innerHTML = `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;color:var(--text2);white-space:pre-wrap;max-height:150px;overflow-y:auto;">${previewText}</div>`;
+    status.innerHTML = `✅ <strong>${file.name}</strong> 업로드 완료 — ${crPdfText.length}자 추출됨`;
+    document.getElementById('cr-drop-zone').style.borderColor = 'var(--primary)';
+  } catch(e) {
+    status.innerHTML = `❌ PDF 처리 오류: ${e.message}`;
+    crPdfText = '';
+  }
+}
+
+function handleCrPdfDrop(event) {
+  event.preventDefault();
+  document.getElementById('cr-drop-zone').style.borderColor = 'var(--border)';
+  const files = event.dataTransfer.files;
+  if (files.length) handleCrPdfUpload(files);
+}
+
+async function generateCurriculumRecompose() {
+  if (!(await checkAiEnabled())) return;
+
+  const subject = document.getElementById('cr-subject').value;
+  const grade = document.getElementById('cr-grade').value;
+  const hours = document.getElementById('cr-hours').value;
+  const direction = document.getElementById('cr-direction').value.trim();
+  const manualText = document.getElementById('cr-text-input').value.trim();
+  const docText = crPdfText || manualText;
+
+  if (!docText) { alert('교육과정 문서를 업로드하거나 내용을 입력해 주세요.'); return; }
+
+  const opts = [];
+  if (document.getElementById('cr-opt-eu').checked) opts.push('① 영속적 이해(Enduring Understanding) 2~3개');
+  if (document.getElementById('cr-opt-eq').checked) opts.push('② 본질적 질문(Essential Question) 2~3개');
+  if (document.getElementById('cr-opt-pt').checked) opts.push('③ 수행과제(Performance Task): 실제적 맥락의 최종 산출물 과제');
+  if (document.getElementById('cr-opt-plan').checked) opts.push('④ 차시별 학습 활동 계획 (WHERETO 요소 포함)');
+  if (document.getElementById('cr-opt-rubric').checked) opts.push('⑤ 루브릭(평가 기준표) 초안: 핵심 평가 영역 3개 기준');
+
+  const prompt = `당신은 2022 개정 교육과정 전문가이자 백워드 설계(UbD) 전문가입니다.
+아래 교육과정 문서를 분석하여 백워드 설계(Backward Design) 형식으로 재구성해 주세요.
+
+[기본 정보]
+- 과목: ${subject} / 학년군: ${grade} / 차시: ${hours}
+${direction ? `- 재구성 방향: ${direction}` : ''}
+
+[교육과정 문서 원문]
+${docText.slice(0, 6000)}${docText.length > 6000 ? '\n...(이하 생략)' : ''}
+
+[재구성 요청 항목]
+${opts.join('\n')}
+
+[백워드 설계 재구성 출력 형식]
+
+## 📌 교육과정 분석 요약
+원문에서 파악한 핵심 내용(목표, 활동, 평가)을 3~5줄로 요약하세요.
+
+## 1단계: 바라는 결과 (Desired Results)
+
+### 관련 성취기준
+원문에서 파악되거나 연계 가능한 성취기준 코드와 내용을 제시하세요.
+
+${document.getElementById('cr-opt-eu').checked ? `### 영속적 이해 (Enduring Understanding)
+학생들이 이 단원을 통해 오래 기억해야 할 핵심 이해를 제시하세요.` : ''}
+
+${document.getElementById('cr-opt-eq').checked ? `### 본질적 질문 (Essential Question)
+탐구를 이끄는 핵심 질문을 제시하세요.` : ''}
+
+### 핵심 지식 및 기능
+학생들이 알아야 할 핵심 지식(Know)과 할 수 있어야 할 기능(Do)을 제시하세요.
+
+## 2단계: 수용 가능한 증거 (Assessment Evidence)
+
+${document.getElementById('cr-opt-pt').checked ? `### 수행과제 (Performance Task)
+GRASPS 요소를 고려한 실제적 수행과제를 설계하세요.` : ''}
+
+### 기타 평가 방법
+관찰, 퀴즈, 자기평가 등 다양한 평가 방법을 제안하세요.
+
+## 3단계: 학습 계획 (Learning Plan)
+
+${document.getElementById('cr-opt-plan').checked ? `### 차시별 학습 활동
+| 차시 | 학습 주제 | 주요 활동 | WHERETO 요소 |
+각 차시를 표로 작성하세요.` : ''}
+
+${document.getElementById('cr-opt-rubric').checked ? `## 💎 루브릭 초안
+핵심 평가 영역 3개에 대한 매우잘함/잘함/보통 루브릭 표를 작성하세요.` : ''}
+
+## 💡 재구성 제안 및 유의사항
+원문과 달라진 부분, 추가 제안, 교사 준비사항 등을 2~4개 bullet로 작성하세요.`;
+
+  const resultDiv = document.getElementById('cr-result');
+  resultDiv.style.display = 'block';
+  resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  await callClaudeStream(prompt, 'cr-ai-text', 8000);
+}
+
+// 재구성 결과를 백워드 설계 페이지에 적용
+function applyCrToBackward() {
+  const subject = document.getElementById('cr-subject').value;
+  const grade = document.getElementById('cr-grade').value;
+  const hours = document.getElementById('cr-hours').value;
+  const aiText = document.getElementById('cr-ai-text').innerText || '';
+
+  // 백워드 설계 기본 정보 채우기
+  const lpSubEl = document.getElementById('lp-subject');
+  if (lpSubEl) {
+    [...lpSubEl.options].forEach((o,i) => { if (o.text === subject) lpSubEl.selectedIndex = i; });
+  }
+
+  // 단원 주제 추출 시도 (첫 줄 또는 헤딩)
+  const unitMatch = document.getElementById('cr-text-input').value.match(/단원[명]?\s*[:]?\s*(.+)/);
+  if (unitMatch) {
+    const unitEl = document.getElementById('bw-unit');
+    if (unitEl && !unitEl.value) unitEl.value = unitMatch[1].trim();
+  }
+
+  // 차시
+  const hoursEl = document.getElementById('bw-hours');
+  if (hoursEl && !hoursEl.value) hoursEl.value = hours;
+
+  // 영속적 이해 추출
+  const euMatch = aiText.match(/영속적 이해[^]*?(학생|이 단원)[^]*?\n([^\n#]+)/);
+  if (euMatch) {
+    const euEl = document.getElementById('bw-eu');
+    if (euEl && !euEl.value) euEl.value = euMatch[2].trim();
+  }
+
+  navigate('backward');
+  setTimeout(() => alert('✅ 재구성 결과가 백워드 설계 페이지에 적용되었습니다.\n나머지 항목은 AI 결과를 참고하여 직접 채워주세요.'), 300);
+}
+
+function clearCurriculumRecompose() {
+  document.getElementById('cr-text-input').value = '';
+  document.getElementById('cr-pdf-status').innerHTML = '';
+  document.getElementById('cr-pdf-preview').innerHTML = '';
+  document.getElementById('cr-drop-zone').style.borderColor = 'var(--border)';
+  document.getElementById('cr-result').style.display = 'none';
+  document.getElementById('cr-pdf-input').value = '';
+  document.getElementById('cr-direction').value = '';
+  crPdfText = '';
+}
 
 async function handlePdfUpload(files) {
   if (!files || !files[0]) return;
