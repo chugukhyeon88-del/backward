@@ -815,6 +815,40 @@
   [data-theme="dark"] .result-section { background: var(--surface); border-color: var(--border); }
   [data-theme="dark"] body { background: var(--bg); color: var(--text); }
 
+  /* ── 통합 설계 흐름 표시기 ── */
+  .flow-stepper {
+    display: flex; align-items: center; gap: 0; margin-bottom: 1.5rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 10px 16px; flex-wrap: wrap; gap: 4px;
+  }
+  .flow-step {
+    display: flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    color: var(--text3); background: transparent; transition: all .2s; cursor: pointer;
+  }
+  .flow-step:hover { background: var(--primary-pale); color: var(--primary); }
+  .flow-step.active { background: var(--primary); color: white; }
+  .flow-step.done { background: var(--primary-pale); color: var(--primary); }
+  .flow-arrow { color: var(--text3); font-size: 14px; padding: 0 2px; }
+  .flow-step-num {
+    width: 18px; height: 18px; border-radius: 50%; background: currentColor;
+    display: flex; align-items: center; justify-content: center; font-size: 10px;
+    flex-shrink: 0;
+  }
+  .flow-step.active .flow-step-num, .flow-step.done .flow-step-num { color: white; background: rgba(255,255,255,.35); }
+  .flow-step:not(.active):not(.done) .flow-step-num { color: white; background: var(--text3); }
+
+  /* ── 연동 버튼 ── */
+  .btn-sync {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+    border: 2px solid var(--primary); color: var(--primary); background: var(--primary-pale);
+    transition: all .15s;
+  }
+  .btn-sync:hover { background: var(--primary); color: white; }
+  [data-theme="dark"] .flow-stepper { background: var(--surface2); border-color: var(--border); }
+  [data-theme="dark"] .btn-sync { border-color: var(--primary); color: var(--primary); background: var(--primary-pale); }
+
   /* ─── DARK MODE TOGGLE ─── */
   .theme-toggle {
     background: rgba(255,255,255,0.15);
@@ -1182,6 +1216,13 @@
 
     <!-- ===== PAGE 3: 백워드 설계 ===== -->
     <div id="page-backward" class="page">
+      <div class="flow-stepper">
+        <div class="flow-step active"><span class="flow-step-num">1</span> 백워드 설계</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step" onclick="navigate('grasps')"><span class="flow-step-num">2</span> GRASPS 수행과제</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step" onclick="navigate('lesson-plan')"><span class="flow-step-num">3</span> 차시별 수업 계획</div>
+      </div>
       <h1 class="page-title">백워드 수업 설계</h1>
       <p class="page-desc">Wiggins &amp; McTighe의 백워드 설계 모형(UbD)을 기반으로 2022 개정 교육과정 성취기준에 맞는 수업을 설계합니다.</p>
 
@@ -1364,6 +1405,8 @@
         <button class="save-btn" onclick="saveDesign('backward')">💾 저장</button>
         <button class="btn btn-outline" onclick="openLoadModal('backward')">📂 불러오기</button>
         <button class="btn btn-outline" onclick="exportBackward()">📄 텍스트 내보내기</button>
+        <button class="btn-sync" onclick="syncBwToGrasps()">⬇ GRASPS로 연동</button>
+        <button class="btn-sync" onclick="syncBwToLessonPlan()">⬇ 차시 설계로 연동</button>
       </div>
 
       <div id="backward-result" style="display:none;" class="result-section">
@@ -1374,6 +1417,13 @@
 
     <!-- ===== PAGE 4: GRASPS ===== -->
     <div id="page-grasps" class="page">
+      <div class="flow-stepper">
+        <div class="flow-step done" onclick="navigate('backward')"><span class="flow-step-num">1</span> 백워드 설계</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step active"><span class="flow-step-num">2</span> GRASPS 수행과제</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step" onclick="navigate('lesson-plan')"><span class="flow-step-num">3</span> 차시별 수업 계획</div>
+      </div>
       <h1 class="page-title">GRASPS 수행과제 설계</h1>
       <p class="page-desc">실제적 맥락의 수행과제를 GRASPS 모델로 설계합니다.</p>
 
@@ -1471,6 +1521,7 @@
         <button class="btn btn-outline" onclick="exportGrasps()">📄 내보내기</button>
         <button class="save-btn" onclick="saveDesign('grasps')">💾 저장</button>
         <button class="btn btn-outline" onclick="openLoadModal('grasps')">📂 불러오기</button>
+        <button class="btn-sync" onclick="syncGraspsToLessonPlan()">⬇ 차시 설계로 연동</button>
       </div>
 
       <div id="grasps-result" style="display:none;" class="result-section">
@@ -1641,6 +1692,13 @@
 
     <!-- ===== 차시별 수업 계획 ===== -->
     <div id="page-lesson-plan" class="page">
+      <div class="flow-stepper">
+        <div class="flow-step done" onclick="navigate('backward')"><span class="flow-step-num">1</span> 백워드 설계</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step done" onclick="navigate('grasps')"><span class="flow-step-num">2</span> GRASPS 수행과제</div>
+        <span class="flow-arrow">›</span>
+        <div class="flow-step active"><span class="flow-step-num">3</span> 차시별 수업 계획</div>
+      </div>
       <h1 class="page-title">차시별 수업 계획</h1>
       <p class="page-desc">성취기준과 백워드 설계를 바탕으로 차시별 수업을 상세히 계획합니다.</p>
       <div class="card">
@@ -4276,6 +4334,143 @@ function getBwCheckedStandards() {
 // 선택된 과목명 목록
 function getBwSubjectNames() {
   return [...bwSelectedSubjects].map(s => subjectNames[s] || s).join(', ');
+}
+
+// ═══════════════════════════════════════════════════
+//  통합 설계 연동 함수
+// ═══════════════════════════════════════════════════
+
+// 백워드 설계 → GRASPS 연동
+function syncBwToGrasps() {
+  // 과목 태그 선택 동기화
+  graspsSelectedSubjects.clear();
+  document.querySelectorAll('#grasps-subject-tags .subject-select-btn').forEach(btn => btn.classList.remove('selected'));
+  for (const sub of bwSelectedSubjects) {
+    graspsSelectedSubjects.add(sub);
+    const btn = document.querySelector(`#grasps-subject-tags [data-sub="${sub}"]`);
+    if (btn) btn.classList.add('selected');
+  }
+
+  // 학년군 동기화 (백워드의 첫 번째 과목 학년 사용)
+  const firstSub = [...bwSelectedSubjects][0];
+  const gradeVal = firstSub ? (document.getElementById(`bw-grade-${firstSub}`)?.value || '') : '';
+  const gradeMap = {'1-2':'초등 1~2학년','3-4':'초등 3~4학년','5-6':'초등 5~6학년','mid1-3':'중학교 1~3학년','high':'고등학교'};
+  const gradeText = gradeMap[gradeVal] || '';
+  const gradeEl = document.getElementById('grasps-grade');
+  if (gradeEl && gradeText) {
+    [...gradeEl.options].forEach((o,i) => { if (o.text === gradeText) gradeEl.selectedIndex = i; });
+  }
+
+  // 단원/주제 동기화
+  const unit = document.getElementById('bw-unit')?.value || '';
+  const unitEl = document.getElementById('grasps-unit');
+  if (unitEl && unit) unitEl.value = unit;
+
+  // 영속적 이해 → Goal(목표)
+  const eu = document.getElementById('bw-eu')?.value || '';
+  const gEl = document.getElementById('grasps-g');
+  if (gEl && eu) gEl.value = eu;
+
+  // 수행과제 → Product(산출물)
+  const pt = document.getElementById('bw-pt')?.value || '';
+  const pEl = document.getElementById('grasps-p');
+  if (pEl && pt) pEl.value = pt;
+
+  // 평가 기준 → Standards(성공 준거)
+  const criteria = document.getElementById('bw-criteria')?.value || '';
+  const psEl = document.getElementById('grasps-ps');
+  if (psEl && criteria) psEl.value = criteria;
+
+  navigate('grasps');
+  setTimeout(() => alert('✅ 백워드 설계 내용이 GRASPS로 연동되었습니다.\n내용을 검토하고 R(역할), A(청중), S(상황)을 추가로 작성해주세요.'), 300);
+}
+
+// 백워드 설계 → 차시별 수업 계획 연동
+function syncBwToLessonPlan() {
+  // 과목 (첫 번째 선택 과목)
+  const firstSub = [...bwSelectedSubjects][0];
+  if (firstSub) {
+    const lpSubEl = document.getElementById('lp-subject');
+    if (lpSubEl) {
+      const subText = subjectNames[firstSub] || '';
+      [...lpSubEl.options].forEach((o,i) => { if (o.text === subText) lpSubEl.selectedIndex = i; });
+    }
+  }
+
+  // 학년군
+  const gradeVal = firstSub ? (document.getElementById(`bw-grade-${firstSub}`)?.value || '') : '';
+  const gradeMap = {'1-2':'초등 1~2학년','3-4':'초등 3~4학년','5-6':'초등 5~6학년','mid1-3':'중학교 1~3학년','high':'고등학교'};
+  const gradeText = gradeMap[gradeVal] || '';
+  const lpGradeEl = document.getElementById('lp-grade');
+  if (lpGradeEl && gradeText) {
+    [...lpGradeEl.options].forEach((o,i) => { if (o.text === gradeText) lpGradeEl.selectedIndex = i; });
+  }
+
+  // 단원/주제
+  const unit = document.getElementById('bw-unit')?.value || '';
+  if (unit) document.getElementById('lp-unit').value = unit;
+
+  // 성취기준
+  const stds = getBwCheckedStandards();
+  if (stds) document.getElementById('lp-standards').value = stds;
+
+  // 영속적 이해 → 단원 목표
+  const eu = document.getElementById('bw-eu')?.value || '';
+  if (eu) document.getElementById('lp-goal').value = eu;
+
+  // 차시 수
+  const hours = document.getElementById('bw-hours')?.value || '';
+  const hoursNum = parseInt(hours);
+  if (hoursNum) {
+    const lpHoursEl = document.getElementById('lp-total-hours');
+    if (lpHoursEl) {
+      const closest = [4,6,8,10,12,16].reduce((a,b) => Math.abs(b-hoursNum) < Math.abs(a-hoursNum) ? b : a);
+      [...lpHoursEl.options].forEach((o,i) => { if (parseInt(o.value) === closest) lpHoursEl.selectedIndex = i; });
+    }
+  }
+
+  navigate('lesson-plan');
+  setTimeout(() => alert('✅ 백워드 설계 내용이 차시별 수업 계획으로 연동되었습니다.\n수업 모형을 선택하고 AI 생성을 눌러보세요.'), 300);
+}
+
+// GRASPS → 차시별 수업 계획 연동
+function syncGraspsToLessonPlan() {
+  // 과목 (첫 번째 선택 과목)
+  const firstSub = [...graspsSelectedSubjects][0];
+  if (firstSub) {
+    const lpSubEl = document.getElementById('lp-subject');
+    if (lpSubEl) {
+      const subText = subjectNames[firstSub] || '';
+      [...lpSubEl.options].forEach((o,i) => { if (o.text === subText) lpSubEl.selectedIndex = i; });
+    }
+  }
+
+  // 학년군
+  const gradeEl = document.getElementById('grasps-grade');
+  const gradeText = gradeEl?.options[gradeEl.selectedIndex]?.text || '';
+  const lpGradeEl = document.getElementById('lp-grade');
+  if (lpGradeEl && gradeText) {
+    [...lpGradeEl.options].forEach((o,i) => { if (o.text === gradeText) lpGradeEl.selectedIndex = i; });
+  }
+
+  // 단원/주제
+  const unit = document.getElementById('grasps-unit')?.value || '';
+  if (unit) document.getElementById('lp-unit').value = unit;
+
+  // Goal(목표) → 단원 목표
+  const goal = document.getElementById('grasps-g')?.value || '';
+  if (goal) document.getElementById('lp-goal').value = goal;
+
+  // Product + Standards → 성취기준/참고
+  const product = document.getElementById('grasps-p')?.value || '';
+  const standards = document.getElementById('grasps-ps')?.value || '';
+  const existing = document.getElementById('lp-standards')?.value || '';
+  if (!existing && (product || standards)) {
+    document.getElementById('lp-standards').value = [product && `[산출물] ${product}`, standards && `[성공 준거] ${standards}`].filter(Boolean).join('\n');
+  }
+
+  navigate('lesson-plan');
+  setTimeout(() => alert('✅ GRASPS 내용이 차시별 수업 계획으로 연동되었습니다.\n수업 모형을 선택하고 AI 생성을 눌러보세요.'), 300);
 }
 
 // ═══════════════════════════════════════════════════
