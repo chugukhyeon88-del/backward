@@ -1855,6 +1855,7 @@
         <button class="btn btn-outline" onclick="exportLessonPlan()">📄 내보내기</button>
         <button class="save-btn" onclick="saveDesign('lesson-plan')">💾 저장</button>
         <button class="btn btn-outline" onclick="openLoadModal('lesson-plan')">📂 불러오기</button>
+        <button class="btn-sync" onclick="syncLpToAssessment()">⬇ 평가 문항 출제로 연동</button>
       </div>
       <div id="lesson-plan-result" style="display:none;" class="result-section">
         <div class="result-title" style="display:flex;align-items:center;justify-content:space-between;"><span>🤖 <span class="ai-badge">✨ AI</span> &nbsp;차시별 수업 계획</span><button class="copy-btn" onclick="copyResult('lesson-plan-ai-text')">복사</button></div>
@@ -2011,6 +2012,30 @@
     <div id="page-assessment" class="page">
       <h1 class="page-title">평가 문항 생성</h1>
       <p class="page-desc">성취기준 기반의 다양한 유형 평가 문항을 AI로 생성합니다.</p>
+
+      <!-- 흐름 표시기 -->
+      <div class="flow-stepper" style="margin-bottom:1rem;">
+        <div class="flow-step done">✅ 백워드 설계</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step done">✅ GRASPS 수행과제</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step done">✅ 차시별 수업 계획</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step active">📝 평가 문항 출제</div>
+        <div style="flex:1;"></div>
+        <button class="btn-sync" style="font-size:12px;padding:5px 12px;" onclick="showPage('lesson-plan')">⬆ 차시 계획으로 돌아가기</button>
+      </div>
+
+      <!-- 연동된 수업 정보 (차시 계획에서 연동 시 표시) -->
+      <div id="as-sync-info" style="display:none;background:var(--primary-pale);border:1.5px solid var(--primary);border-radius:10px;padding:12px 16px;margin-bottom:1rem;">
+        <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px;">📌 차시별 수업 계획에서 연동된 정보</div>
+        <div id="as-sync-info-text" style="font-size:13px;color:var(--text2);white-space:pre-line;line-height:1.7;"></div>
+        <div style="margin-top:8px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);">연동된 성취기준 (평가 문항 생성에 활용됩니다)</label>
+          <textarea class="form-textarea" id="as-synced-standards" rows="3" placeholder="차시 계획 연동 시 자동으로 채워집니다." style="margin-top:4px;background:white;"></textarea>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header"><div class="card-header-left"><span>⚙️</span><span class="card-title">문항 설정</span></div></div>
         <div class="card-body">
@@ -2641,8 +2666,10 @@ function exportRubric() {
 async function generateAssessment() {
   const sub = getAsSubjectNames() || '(과목 미선택)';
   const unit = document.getElementById('as-unit').value;
+  const syncedStds = document.getElementById('as-synced-standards')?.value?.trim() || '';
   const checkedStds = getAsCheckedStandards();
-  if (!checkedStds) { alert('성취기준을 하나 이상 선택해 주세요.'); return; }
+  const stdsToUse = checkedStds || syncedStds;
+  if (!stdsToUse) { alert('성취기준을 하나 이상 선택하거나, 연동된 성취기준을 입력해 주세요.'); return; }
   const diff = document.querySelector('input[name="as-difficulty"]:checked')?.value || 'mixed';
   const dNames = {mixed:'혼합(하/중/상)',low:'기초(하)',mid:'중간(중)',high:'심화(상)'};
 
@@ -2656,7 +2683,7 @@ async function generateAssessment() {
 
 과목: ${sub} / 단원: ${unit||'(미입력)'} / 난이도: ${dNames[diff]}
 성취기준:
-${checkedStds}
+${stdsToUse}
 생성 문항: ${qTypes.join(', ')}
 
 각 문항 형식:
@@ -4747,6 +4774,47 @@ function syncGraspsToLessonPlan() {
 
   navigate('lesson-plan');
   setTimeout(() => alert('✅ GRASPS 내용이 차시별 수업 계획으로 연동되었습니다.\n수업 모형을 선택하고 AI 생성을 눌러보세요.'), 300);
+}
+
+function syncLpToAssessment() {
+  const unit   = document.getElementById('lp-unit')?.value || '';
+  const goal   = document.getElementById('lp-goal')?.value || '';
+  const stds   = document.getElementById('lp-standards')?.value || '';
+  const subEl  = document.getElementById('lp-subject');
+  const subText = subEl ? subEl.options[subEl.selectedIndex]?.text || '' : '';
+
+  if (!unit && !subText) {
+    alert('차시별 수업 계획의 과목과 단원/주제를 먼저 입력해 주세요.');
+    return;
+  }
+
+  // 과목 → asSelectedSubjects 에 매핑
+  const subKeyByName = Object.fromEntries(Object.entries(subjectNames).map(([k,v]) => [v, k]));
+  const matchedKey = subKeyByName[subText];
+  if (matchedKey && !asSelectedSubjects.has(matchedKey)) {
+    const btn = document.querySelector(`#as-subject-tags [data-sub="${matchedKey}"]`);
+    if (btn) toggleAsSubjectTag(btn);
+  }
+
+  // 단원/주제
+  if (unit) document.getElementById('as-unit').value = unit;
+
+  // 연동 정보 패널 채우기
+  const infoEl = document.getElementById('as-sync-info');
+  const infoText = document.getElementById('as-sync-info-text');
+  const syncStds = document.getElementById('as-synced-standards');
+  if (infoEl && infoText) {
+    infoEl.style.display = 'block';
+    const lines = [];
+    if (subText) lines.push(`과목: ${subText}`);
+    if (unit)    lines.push(`단원/주제: ${unit}`);
+    if (goal)    lines.push(`수업 목표: ${goal}`);
+    infoText.textContent = lines.join('\n');
+  }
+  if (syncStds && stds) syncStds.value = stds;
+
+  navigate('assessment');
+  setTimeout(() => showToast('✅ 차시별 수업 계획 내용이 평가 문항 출제 페이지로 연동되었습니다.'), 300);
 }
 
 // ═══════════════════════════════════════════════════
