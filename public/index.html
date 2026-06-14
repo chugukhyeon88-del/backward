@@ -2426,9 +2426,9 @@
               ondrop="handleDrFileDrop(event)">
               <div style="font-size:28px;margin-bottom:6px;">📄</div>
               <div style="font-size:13px;color:var(--text2);">클릭하거나 파일을 여기에 끌어다 놓으세요</div>
-              <div style="font-size:11px;color:var(--text3);margin-top:4px;">PDF · TXT · DOCX 지원</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px;">PDF · DOCX · HWP · HWPX 지원</div>
             </div>
-            <input type="file" id="dr-file-input" accept=".pdf,.txt,.docx,.doc" style="display:none;" onchange="handleDrFileSelect(event)">
+            <input type="file" id="dr-file-input" accept=".pdf,.docx,.doc,.hwp,.hwpx" style="display:none;" onchange="handleDrFileSelect(event)">
             <div id="dr-file-name" style="font-size:12px;color:var(--primary);margin-top:6px;display:none;"></div>
           </div>
 
@@ -2460,6 +2460,8 @@
 
 <!-- PDF.js CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- JSZip (DOCX / HWPX 처리용) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script>
   if (typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 </script>
@@ -6123,30 +6125,109 @@ async function readDrFile(file) {
 
   try {
     let text = '';
-    if (file.type === 'application/pdf') {
+    const name = file.name.toLowerCase();
+
+    if (file.type === 'application/pdf' || name.endsWith('.pdf')) {
       text = await extractPdfText(file);
-    } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-      // DOCX: 텍스트 직접 읽기 (간이 방식 — XML에서 w:t 추출)
-      const buf = await file.arrayBuffer();
-      const { JSZip } = window;
-      if (JSZip) {
-        const zip = await JSZip.loadAsync(buf);
-        const xml = await zip.file('word/document.xml').async('text');
-        text = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-      } else {
-        text = await file.text();
-      }
+
+    } else if (name.endsWith('.docx')) {
+      text = await extractDocxText(file);
+
+    } else if (name.endsWith('.hwpx')) {
+      text = await extractHwpxText(file);
+
+    } else if (name.endsWith('.hwp')) {
+      text = await extractHwpText(file);
+
     } else {
       text = await file.text();
     }
+
+    if (!text || text.trim().length < 10) {
+      throw new Error('텍스트를 추출하지 못했습니다. 내용을 직접 붙여넣기 해주세요.');
+    }
+
     document.getElementById('dr-content').value = text;
     const cnt = text.length;
     const el = document.getElementById('dr-char-count');
     if (el) el.textContent = `${cnt.toLocaleString()}자`;
     nameEl.textContent = `✅ ${file.name} (${cnt.toLocaleString()}자 추출됨)`;
   } catch(e) {
-    nameEl.textContent = `❌ 파일 읽기 실패: ${e.message}`;
+    nameEl.style.color = 'var(--danger, #e53e3e)';
+    nameEl.textContent = `❌ ${e.message}`;
   }
+}
+
+async function extractDocxText(file) {
+  const buf = await file.arrayBuffer();
+  if (typeof JSZip === 'undefined') throw new Error('JSZip 로드 실패 — 페이지를 새로고침 후 다시 시도하세요.');
+  const zip = await JSZip.loadAsync(buf);
+  const xmlFile = zip.file('word/document.xml');
+  if (!xmlFile) throw new Error('DOCX 구조를 읽을 수 없습니다.');
+  const xml = await xmlFile.async('text');
+  // w:t 태그 내용만 추출하고 w:br/w:p 는 줄바꿈으로
+  return xml
+    .replace(/<w:br[^/]*/g, '\n')
+    .replace(/<\/w:p>/g, '\n')
+    .replace(/<w:t[^>]*>/g, '')
+    .replace(/<\/w:t>/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function extractHwpxText(file) {
+  const buf = await file.arrayBuffer();
+  if (typeof JSZip === 'undefined') throw new Error('JSZip 로드 실패 — 페이지를 새로고침 후 다시 시도하세요.');
+  const zip = await JSZip.loadAsync(buf);
+  // HWPX: Contents/section0.xml, section1.xml … 에 본문 존재
+  const sections = Object.keys(zip.files).filter(n => /Contents\/section\d+\.xml$/i.test(n)).sort();
+  if (sections.length === 0) throw new Error('HWPX 본문 파일을 찾을 수 없습니다.');
+  let allText = '';
+  for (const sec of sections) {
+    const xml = await zip.file(sec).async('text');
+    // hp:t 태그 내용 추출, hp:linesegarray/hp:p 는 줄바꿈
+    const part = xml
+      .replace(/<\/hp:p>/gi, '\n')
+      .replace(/<hp:lineSegArray[^>]*>/gi, '\n')
+      .replace(/<hp:t[^>]*>/gi, '')
+      .replace(/<\/hp:t>/gi, '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+    allText += part + '\n\n';
+  }
+  return allText.trim();
+}
+
+async function extractHwpText(file) {
+  // HWP 5.x 바이너리 형식: OLE2 구조. 완전 파싱은 불가하나
+  // UTF-16LE 한글 문자열 구간을 휴리스틱으로 추출합니다.
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let text = '';
+  // UTF-16LE 스캔: 연속된 한글(0xAC00–0xD7A3), ASCII 가독 문자 추출
+  for (let i = 0; i < bytes.length - 1; i += 2) {
+    const cp = bytes[i] | (bytes[i + 1] << 8);
+    if (
+      (cp >= 0xAC00 && cp <= 0xD7A3) ||  // 한글 음절
+      (cp >= 0x3131 && cp <= 0x318E) ||  // 한글 자모
+      (cp >= 0x0020 && cp <= 0x007E) ||  // ASCII 인쇄 가능
+      cp === 0x000A || cp === 0x000D      // 줄바꿈
+    ) {
+      text += String.fromCodePoint(cp);
+    } else if (text.length > 0 && text[text.length - 1] !== '\n') {
+      // 비가독 구간 → 공백 구분
+      text += ' ';
+    }
+  }
+  // 연속 공백·줄바꿈 정리
+  text = text.replace(/[ \t]{4,}/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  if (text.length < 20) {
+    throw new Error('HWP 바이너리에서 텍스트를 추출하지 못했습니다. 한글에서 "다른 이름으로 저장 → HWPX 또는 PDF" 로 변환 후 업로드해 주세요.');
+  }
+  return text;
 }
 
 async function extractPdfText(file) {
