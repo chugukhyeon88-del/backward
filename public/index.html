@@ -4092,6 +4092,84 @@ function navigate(page) {
 }
 
 // ═══════════════════════════════════════════════════
+//  localStorage 자동 임시저장 (Draft)
+// ═══════════════════════════════════════════════════
+const DRAFT_FIELDS = {
+  backward: ['bw-unit','bw-hours','bw-eu','bw-eq','bw-kk','bw-pt','bw-criteria','bw-plan'],
+  grasps:   ['grasps-unit','grasps-g','grasps-r','grasps-au','grasps-s','grasps-p','grasps-ps'],
+  'lesson-plan': ['lp-unit','lp-standards','lp-goal'],
+  rubric:   ['rb-task','rb-criteria'],
+  'achievement-level': ['al-unit'],
+};
+
+function saveDraft(page) {
+  try {
+    const ids = DRAFT_FIELDS[page];
+    if (!ids) return;
+    const draft = {};
+    ids.forEach(id => { const el = document.getElementById(id); if (el) draft[id] = el.value; });
+    // 과목 선택 상태
+    if (page === 'backward')          draft._subjects = [...bwSelectedSubjects];
+    if (page === 'grasps')            draft._subjects = [...graspsSelectedSubjects];
+    if (page === 'rubric')            draft._subjects = [...rbSelectedSubjects];
+    if (page === 'achievement-level') draft._subjects = [...alSelectedSubjects];
+    localStorage.setItem(`draft_${page}`, JSON.stringify(draft));
+  } catch(e) {}
+}
+
+function restoreDraft(page) {
+  try {
+    const raw = localStorage.getItem(`draft_${page}`);
+    if (!raw) return;
+    const draft = JSON.parse(raw);
+    const ids = DRAFT_FIELDS[page] || [];
+    ids.forEach(id => { const el = document.getElementById(id); if (el && draft[id]) el.value = draft[id]; });
+    // 과목 선택 복원
+    if (draft._subjects && Array.isArray(draft._subjects)) {
+      const tagMap = {
+        backward: { set: bwSelectedSubjects, containerId: 'bw-subject-tags', render: renderBwStdContainer },
+        grasps:   { set: graspsSelectedSubjects, containerId: 'grasps-subject-tags', render: () => {} },
+        rubric:   { set: rbSelectedSubjects, containerId: 'rb-subject-tags', render: renderRbStdContainer },
+        'achievement-level': { set: alSelectedSubjects, containerId: 'al-subject-tags', render: renderAlStdContainer },
+      };
+      const m = tagMap[page];
+      if (m) {
+        m.set.clear();
+        draft._subjects.forEach(s => {
+          m.set.add(s);
+          const btn = document.querySelector(`#${m.containerId} [data-sub="${s}"]`);
+          if (btn) btn.classList.add('selected');
+        });
+        m.render();
+      }
+    }
+  } catch(e) {}
+}
+
+function clearDraft(page) {
+  try { localStorage.removeItem(`draft_${page}`); } catch(e) {}
+}
+
+// 페이지 로드 시 임시저장 복원
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    Object.keys(DRAFT_FIELDS).forEach(page => restoreDraft(page));
+    // 자동저장: 입력 변경 시마다 debounce로 저장
+    let draftTimer = {};
+    Object.entries(DRAFT_FIELDS).forEach(([page, ids]) => {
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          clearTimeout(draftTimer[page]);
+          draftTimer[page] = setTimeout(() => saveDraft(page), 800);
+        });
+      });
+    });
+  }, 1000);
+});
+
+// ═══════════════════════════════════════════════════
 //  CORE IDEAS PAGE
 // ═══════════════════════════════════════════════════
 
@@ -5223,6 +5301,7 @@ async function saveDesign(type) {
 
   try {
     await fb.setDoc(fb.doc(fb.db, 'designs', id), data);
+    clearDraft(type);
     showToast('✓ 저장되었습니다');
     return id;
   } catch(e) { alert('저장 오류: ' + e.message); }
@@ -5372,21 +5451,22 @@ function collectDesignData(type) {
   }
   if (type === 'rubric') {
     return {
-      title: document.getElementById('rb-task')?.value || '',
-      subject: document.getElementById('rb-subject')?.value || '',
-      grade: document.getElementById('rb-grade')?.value || '',
+      title: document.getElementById('rb-task')?.value || getRbSubjectNames() || '',
+      subject: getRbSubjectNames(),
+      subjects: [...rbSelectedSubjects],
       task: document.getElementById('rb-task')?.value || '',
       criteria: document.getElementById('rb-criteria')?.value || '',
+      levels: document.getElementById('rb-levels')?.value || '4',
       aiResult: document.getElementById('rubric-ai-text')?.innerText || '',
     };
   }
   if (type === 'achievement-level') {
     return {
-      title: document.getElementById('al-unit')?.value || document.getElementById('al-standards')?.value?.slice(0,30) || '',
-      subject: document.getElementById('al-subject')?.value || '',
-      grade: document.getElementById('al-grade')?.value || '',
+      title: document.getElementById('al-unit')?.value || getAlSubjectNames() || '',
+      subject: getAlSubjectNames(),
+      subjects: [...alSelectedSubjects],
       unit: document.getElementById('al-unit')?.value || '',
-      standards: document.getElementById('al-standards')?.value || '',
+      checkedStds: getAlCheckedStandards(),
       aiResult: document.getElementById('al-ai-text')?.innerText || '',
     };
   }
@@ -5444,16 +5524,36 @@ function applyDesignData(data, type) {
     }
   }
   if (type === 'rubric') {
-    set('rb-subject', data.subject); set('rb-grade', data.grade);
+    if (data.subjects && Array.isArray(data.subjects)) {
+      rbSelectedSubjects.clear();
+      document.querySelectorAll('#rb-subject-tags .subject-select-btn').forEach(b => b.classList.remove('selected'));
+      data.subjects.forEach(s => {
+        rbSelectedSubjects.add(s);
+        const btn = document.querySelector(`#rb-subject-tags [data-sub="${s}"]`);
+        if (btn) btn.classList.add('selected');
+      });
+      renderRbStdContainer();
+    }
     set('rb-task', data.task); set('rb-criteria', data.criteria);
+    const lvlEl = document.getElementById('rb-levels');
+    if (lvlEl && data.levels) lvlEl.value = data.levels;
     if (data.aiResult) {
       document.getElementById('rubric-result').style.display = 'block';
       document.getElementById('rubric-ai-text').innerHTML = renderMarkdown(data.aiResult);
     }
   }
   if (type === 'achievement-level') {
-    set('al-subject', data.subject); set('al-grade', data.grade);
-    set('al-unit', data.unit); set('al-standards', data.standards);
+    if (data.subjects && Array.isArray(data.subjects)) {
+      alSelectedSubjects.clear();
+      document.querySelectorAll('#al-subject-tags .subject-select-btn').forEach(b => b.classList.remove('selected'));
+      data.subjects.forEach(s => {
+        alSelectedSubjects.add(s);
+        const btn = document.querySelector(`#al-subject-tags [data-sub="${s}"]`);
+        if (btn) btn.classList.add('selected');
+      });
+      renderAlStdContainer();
+    }
+    set('al-unit', data.unit);
     if (data.aiResult) {
       document.getElementById('al-result').style.display = 'block';
       document.getElementById('al-ai-text').innerHTML = renderMarkdown(data.aiResult);
