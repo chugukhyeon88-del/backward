@@ -4742,14 +4742,20 @@ async function suggestField(fieldId) {
     }
 
     // 번호 목록으로 파싱해서 카드 형태로 표시
-    const items = text.split(/\n(?=\d+\.)/).map(s => s.replace(/^\d+\.\s*/, '').trim()).filter(Boolean);
+    const items = text.split(/\n(?=\d+[\.\)])/).map(s => s.replace(/^\d+[\.\)]\s*\n?/, '').trim()).filter(Boolean);
     if (items.length === 0) items.push(text.trim());
 
+    // 텍스트를 전역 저장 (onclick 속성 이스케이프 문제 회피)
+    window._suggestItems = window._suggestItems || {};
+    window._suggestItems[fieldId] = items;
+
+    const labels = ['제안 1', '제안 2', '제안 3'];
     let html = `<div class="suggest-header">✨ AI 추천 — 항목을 클릭하면 입력란에 적용됩니다</div>`;
     items.forEach((item, i) => {
-      const escaped = item.replace(/'/g, "\\'").replace(/\n/g, '\\n');
-      html += `<div class="suggest-item" onclick="applySuggest('bw-${fieldId}','${escaped}')">
-        <span class="suggest-apply">클릭하여 적용 →</span>${item.replace(/\n/g,'<br>')}
+      html += `<div class="suggest-item" onclick="applySuggestIdx('bw-${fieldId}','${fieldId}',${i})" style="border-left:3px solid var(--primary);margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--primary);margin-bottom:6px;">📌 ${labels[i] || `제안 ${i+1}`}</div>
+        <div style="margin-bottom:6px;">${item.replace(/\n/g,'<br>')}</div>
+        <span class="suggest-apply">클릭하여 적용 →</span>
       </div>`;
     });
     box.innerHTML = html;
@@ -4767,11 +4773,25 @@ function applySuggest(targetId, text) {
     el.value = text.replace(/\\n/g, '\n');
     el.style.borderColor = 'var(--primary)';
     setTimeout(() => el.style.borderColor = '', 1500);
-    // 적용 후 추천 박스 닫기
     const fieldId = targetId.replace('bw-','');
     const box = document.getElementById(`suggest-${fieldId}`);
     if (box) box.style.display = 'none';
   }
+}
+
+function applySuggestIdx(targetId, fieldId, idx) {
+  const items = window._suggestItems && window._suggestItems[fieldId];
+  if (!items || idx >= items.length) return;
+  const text = items[idx];
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  el.value = text;
+  el.style.borderColor = 'var(--primary)';
+  setTimeout(() => el.style.borderColor = '', 1500);
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const box = document.getElementById(`suggest-${fieldId}`);
+  if (box) box.style.display = 'none';
+  showToast('✅ 입력란에 적용됐습니다.');
 }
 
 async function generateBackward() {
