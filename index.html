@@ -1120,6 +1120,12 @@
       </div>
     </div>
     <div class="nav-section">
+      <div class="nav-section-title">설계 점검</div>
+      <div class="nav-item" onclick="navigate('design-review')">
+        <span class="icon">🔎</span> 설계안 피드백
+      </div>
+    </div>
+    <div class="nav-section">
       <div class="nav-section-title">AI 생성</div>
       <div class="nav-item" onclick="navigate('inquiry')">
         <span class="icon">🔍</span> 탐구 질문 생성
@@ -2342,6 +2348,110 @@
       <div id="pe-result" style="display:none;" class="result-section">
         <div class="result-title">📝 <span class="ai-badge">✨ AI</span> &nbsp;생성된 평어 목록</div>
         <div class="ai-result-area md-rendered" id="pe-ai-text">생성 중...</div>
+      </div>
+    </div>
+
+    <!-- ===== 설계안 피드백 ===== -->
+    <div id="page-design-review" class="page">
+      <h1 class="page-title">설계안 피드백 &amp; 점검</h1>
+      <p class="page-desc">백워드 설계, GRASPS, 교육과정 재구성 등 작성한 설계안을 업로드하면 AI가 2022 개정 교육과정 UbD 관점으로 체계적인 피드백을 제공합니다.</p>
+
+      <div class="card">
+        <div class="card-header"><div class="card-header-left"><span>📋</span><span class="card-title">설계안 입력</span></div></div>
+        <div class="card-body">
+
+          <!-- 설계 유형 -->
+          <div class="form-row">
+            <label class="form-label">설계 유형 선택</label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;" id="dr-type-tags">
+              <button type="button" class="subject-select-btn" data-type="backward" onclick="toggleDrType(this)">🔄 백워드 설계</button>
+              <button type="button" class="subject-select-btn" data-type="grasps" onclick="toggleDrType(this)">🎯 GRASPS 수행과제</button>
+              <button type="button" class="subject-select-btn" data-type="lesson-plan" onclick="toggleDrType(this)">📅 차시별 수업 계획</button>
+              <button type="button" class="subject-select-btn" data-type="curriculum" onclick="toggleDrType(this)">📂 교육과정 재구성</button>
+              <button type="button" class="subject-select-btn" data-type="project" onclick="toggleDrType(this)">🚀 프로젝트 학습 설계</button>
+              <button type="button" class="subject-select-btn" data-type="rubric" onclick="toggleDrType(this)">📊 수행평가 루브릭</button>
+              <button type="button" class="subject-select-btn" data-type="general" onclick="toggleDrType(this)">📄 기타 수업 설계</button>
+            </div>
+          </div>
+
+          <!-- 학교급/학년 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.5rem;">
+            <div class="form-row" style="margin:0;">
+              <label class="form-label">학교급</label>
+              <select class="form-select" id="dr-school">
+                <option value="">선택 안함</option>
+                <option>초등학교</option>
+                <option>중학교</option>
+                <option>고등학교</option>
+              </select>
+            </div>
+            <div class="form-row" style="margin:0;">
+              <label class="form-label">과목 (선택)</label>
+              <input class="form-input" id="dr-subject" placeholder="예: 사회, 과학, 국어">
+            </div>
+          </div>
+
+          <!-- 피드백 초점 -->
+          <div class="form-row" style="margin-top:1rem;">
+            <label class="form-label">피드백 초점 <span style="font-weight:400;color:var(--text3);font-size:12px;">(복수 선택 가능)</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;">
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-ubd" checked> UbD 3단계 구조 적합성
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-std" checked> 성취기준 연계성
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-eu"> 영속적 이해 / 본질적 질문 적절성
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-task" checked> 수행과제 타당성
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-align"> 수업-평가 일관성
+              </label>
+              <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--surface2);padding:5px 10px;border-radius:6px;border:1px solid var(--border);">
+                <input type="checkbox" id="dr-focus-improve" checked> 구체적 개선 제안
+              </label>
+            </div>
+          </div>
+
+          <!-- 파일 업로드 -->
+          <div class="form-row" style="margin-top:1rem;">
+            <label class="form-label">설계안 파일 업로드 <span style="font-weight:400;color:var(--text3);font-size:12px;">(PDF · TXT · DOCX 텍스트)</span></label>
+            <div id="dr-drop-zone" onclick="document.getElementById('dr-file-input').click()"
+              style="border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:border-color .2s;background:var(--surface2);"
+              ondragover="event.preventDefault();this.style.borderColor='var(--primary)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="handleDrFileDrop(event)">
+              <div style="font-size:28px;margin-bottom:6px;">📄</div>
+              <div style="font-size:13px;color:var(--text2);">클릭하거나 파일을 여기에 끌어다 놓으세요</div>
+              <div style="font-size:11px;color:var(--text3);margin-top:4px;">PDF · TXT · DOCX 지원</div>
+            </div>
+            <input type="file" id="dr-file-input" accept=".pdf,.txt,.docx,.doc" style="display:none;" onchange="handleDrFileSelect(event)">
+            <div id="dr-file-name" style="font-size:12px;color:var(--primary);margin-top:6px;display:none;"></div>
+          </div>
+
+          <!-- 직접 입력 -->
+          <div class="form-row">
+            <label class="form-label">또는 설계안 내용 직접 붙여넣기</label>
+            <textarea class="form-textarea" id="dr-content" rows="10" placeholder="작성한 백워드 설계안, 수업 지도안, 교육과정 재구성 내용 등을 그대로 붙여넣으세요.&#10;&#10;예)&#10;단원명: 우리 지역의 환경 문제&#10;영속적 이해: 인간의 활동은 환경에 영향을 미친다.&#10;본질적 질문: 우리는 환경과 어떻게 공존할 수 있는가?&#10;성취기준: [4사03-03] ..."></textarea>
+          </div>
+
+          <div id="dr-char-count" style="font-size:11px;color:var(--text3);text-align:right;margin-top:4px;">0자</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generateDesignReview()">🔎 AI 피드백 받기</button>
+        <button class="btn btn-outline" onclick="copyResult('dr-ai-text')">📋 복사</button>
+        <button class="btn btn-outline" onclick="exportDesignReview()">📄 내보내기</button>
+        <button class="btn btn-outline" style="color:var(--danger,#e53e3e);border-color:var(--danger,#e53e3e);" onclick="clearDesignReview()">🗑 초기화</button>
+      </div>
+
+      <div id="dr-result" style="display:none;" class="result-section">
+        <div class="result-title">🔎 <span class="ai-badge">✨ AI</span> &nbsp;설계안 피드백 결과</div>
+        <div class="ai-result-area md-rendered" id="dr-ai-text">분석 중...</div>
       </div>
     </div>
 
@@ -5965,6 +6075,218 @@ function clearCurriculumRecompose() {
   document.getElementById('cr-pdf-input').value = '';
   document.getElementById('cr-direction').value = '';
   crPdfText = '';
+}
+
+// ═══════════════════════════════════════════════════
+//  설계안 피드백 & 점검
+// ═══════════════════════════════════════════════════
+let drSelectedType = null;
+
+function toggleDrType(btn) {
+  document.querySelectorAll('#dr-type-tags .subject-select-btn').forEach(b => b.classList.remove('active'));
+  if (drSelectedType === btn.dataset.type) {
+    drSelectedType = null;
+  } else {
+    btn.classList.add('active');
+    drSelectedType = btn.dataset.type;
+  }
+}
+
+// 문자 수 카운트
+document.addEventListener('DOMContentLoaded', () => {
+  const drContent = document.getElementById('dr-content');
+  if (drContent) {
+    drContent.addEventListener('input', () => {
+      const cnt = drContent.value.length;
+      const el = document.getElementById('dr-char-count');
+      if (el) el.textContent = `${cnt.toLocaleString()}자`;
+    });
+  }
+});
+
+async function handleDrFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) await readDrFile(file);
+}
+
+function handleDrFileDrop(event) {
+  event.preventDefault();
+  document.getElementById('dr-drop-zone').style.borderColor = 'var(--border)';
+  const file = event.dataTransfer.files[0];
+  if (file) readDrFile(file);
+}
+
+async function readDrFile(file) {
+  const nameEl = document.getElementById('dr-file-name');
+  nameEl.style.display = 'block';
+  nameEl.textContent = `📎 ${file.name} 읽는 중...`;
+
+  try {
+    let text = '';
+    if (file.type === 'application/pdf') {
+      text = await extractPdfText(file);
+    } else if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+      // DOCX: 텍스트 직접 읽기 (간이 방식 — XML에서 w:t 추출)
+      const buf = await file.arrayBuffer();
+      const { JSZip } = window;
+      if (JSZip) {
+        const zip = await JSZip.loadAsync(buf);
+        const xml = await zip.file('word/document.xml').async('text');
+        text = xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      } else {
+        text = await file.text();
+      }
+    } else {
+      text = await file.text();
+    }
+    document.getElementById('dr-content').value = text;
+    const cnt = text.length;
+    const el = document.getElementById('dr-char-count');
+    if (el) el.textContent = `${cnt.toLocaleString()}자`;
+    nameEl.textContent = `✅ ${file.name} (${cnt.toLocaleString()}자 추출됨)`;
+  } catch(e) {
+    nameEl.textContent = `❌ 파일 읽기 실패: ${e.message}`;
+  }
+}
+
+async function extractPdfText(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF.js 로드 실패');
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  let all = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const tc = await page.getTextContent();
+    all += tc.items.map(t => t.str).join(' ') + '\n';
+  }
+  return all.trim();
+}
+
+const drTypeLabels = {
+  'backward':    '백워드 설계(UbD)',
+  'grasps':      'GRASPS 수행과제 설계',
+  'lesson-plan': '차시별 수업 계획',
+  'curriculum':  '교육과정 재구성',
+  'project':     '프로젝트 학습 설계',
+  'rubric':      '수행평가 루브릭',
+  'general':     '수업 설계(기타)',
+};
+
+async function generateDesignReview() {
+  const content = document.getElementById('dr-content').value.trim();
+  if (!content || content.length < 50) {
+    alert('설계안 내용을 50자 이상 입력하거나 파일을 업로드해 주세요.');
+    return;
+  }
+
+  const typeLbl  = drSelectedType ? drTypeLabels[drSelectedType] : '수업/교육과정 설계';
+  const school   = document.getElementById('dr-school').value;
+  const subject  = document.getElementById('dr-subject').value.trim();
+
+  // 피드백 초점 수집
+  const focuses = [];
+  if (document.getElementById('dr-focus-ubd').checked)     focuses.push('UbD 3단계 구조 적합성(이해→수행과제→학습경험)');
+  if (document.getElementById('dr-focus-std').checked)     focuses.push('성취기준 연계성 및 반영 적절성');
+  if (document.getElementById('dr-focus-eu').checked)      focuses.push('영속적 이해와 본질적 질문의 적절성');
+  if (document.getElementById('dr-focus-task').checked)    focuses.push('수행과제 타당성(GRASPS 요소, 실제성)');
+  if (document.getElementById('dr-focus-align').checked)   focuses.push('수업-평가 일관성(Alignment)');
+  if (document.getElementById('dr-focus-improve').checked) focuses.push('구체적 수정·보완 제안');
+
+  const focusStr = focuses.length ? focuses.join(', ') : '전반적 설계 품질';
+
+  const maxLen = 6000;
+  const excerpt = content.length > maxLen
+    ? content.slice(0, maxLen) + '\n\n[이하 내용 생략 — 전체 ' + content.length.toLocaleString() + '자]'
+    : content;
+
+  const prompt = `당신은 2022 개정 교육과정 및 백워드 설계(UbD) 전문가입니다.
+아래 교사가 작성한 설계안을 분석하고, 전문적이고 건설적인 피드백을 제공해 주세요.
+
+## 설계안 기본 정보
+- 설계 유형: ${typeLbl}
+- 학교급: ${school || '(미기재)'}
+- 과목: ${subject || '(미기재)'}
+- 피드백 초점: ${focusStr}
+
+## 설계안 원문
+${excerpt}
+
+---
+
+## 피드백 작성 지침
+다음 구조로 체계적인 피드백을 작성하세요.
+
+### ✅ 잘된 점 (강점)
+설계안에서 긍정적으로 평가되는 요소를 3~5가지 구체적으로 제시하세요.
+- 2022 개정 교육과정의 핵심 역량 및 UbD 원리에 부합하는 요소
+- 학생 중심, 이해 중심, 과정 중심 평가 측면에서의 강점
+
+### ⚠️ 보완이 필요한 점
+설계안에서 개선이 필요한 부분을 항목별로 제시하세요.
+각 항목마다: **문제점** → **이유** → **구체적 수정 방향** 순서로 기술하세요.
+
+${focuses.includes('UbD 3단계 구조 적합성(이해→수행과제→학습경험)') ? `
+#### 1. UbD 3단계 구조 적합성
+- 1단계(바라는 결과), 2단계(수행과제), 3단계(학습경험)의 논리적 연결 여부
+- 백워드 설계 원리(목표→평가→수업)가 충실히 구현되었는지` : ''}
+${focuses.includes('성취기준 연계성 및 반영 적절성') ? `
+#### 2. 성취기준 연계성
+- 성취기준이 명확히 제시되어 있는지
+- 수업 목표, 수행과제, 평가 방법이 성취기준과 정합성을 이루는지
+- 2022 개정 교육과정의 핵심 역량(지식·이해, 과정·기능, 가치·태도)이 반영되었는지` : ''}
+${focuses.includes('영속적 이해와 본질적 질문의 적절성') ? `
+#### 3. 영속적 이해 / 본질적 질문
+- 영속적 이해가 일반화된 문장(완전한 서술형)으로 작성되었는지
+- 본질적 질문이 학생의 사고를 자극하는 열린 질문인지
+- 단원을 넘어 전이 가능한 이해를 지향하는지` : ''}
+${focuses.includes('수행과제 타당성(GRASPS 요소, 실제성)') ? `
+#### 4. 수행과제 타당성
+- 수행과제가 실제적 맥락(authentic context)을 갖추는지
+- GRASPS 요소(Goal, Role, Audience, Situation, Product, Standards)가 충분히 반영되었는지
+- 학생이 이해를 실질적으로 증명할 수 있는 과제인지` : ''}
+${focuses.includes('수업-평가 일관성(Alignment)') ? `
+#### 5. 수업-평가 일관성
+- 수업 활동과 평가 방법이 학습 목표와 정렬되어 있는지
+- 평가 기준(루브릭)이 수행과제와 연계되어 있는지` : ''}
+
+### 💡 구체적 수정 제안
+${focuses.includes('구체적 수정·보완 제안') ? '가장 우선적으로 수정해야 할 3가지를 구체적 예시와 함께 제안하세요.' : '핵심 개선 사항 1~2가지를 제안하세요.'}
+
+### 📊 종합 평가
+| 평가 항목 | 점수(5점 만점) | 한줄 코멘트 |
+|---|---|---|
+| UbD 구조 적합성 | X/5 | |
+| 성취기준 연계성 | X/5 | |
+| 수행과제 타당성 | X/5 | |
+| 수업-평가 일관성 | X/5 | |
+| 학생 중심 설계 | X/5 | |
+| **종합 점수** | **X/5** | |
+
+> 💬 **총평**: (2~3문장으로 이 설계안의 전체적인 완성도와 방향성을 평가하세요)`;
+
+  document.getElementById('dr-result').style.display = 'block';
+  document.getElementById('dr-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  await callClaudeStream(prompt, 'dr-ai-text', 8000);
+}
+
+function exportDesignReview() {
+  const text = document.getElementById('dr-ai-text').innerText;
+  if (!text || text === '분석 중...') { alert('먼저 AI 피드백을 생성해 주세요.'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+  a.download = `설계안_피드백_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.txt`;
+  a.click();
+}
+
+function clearDesignReview() {
+  document.getElementById('dr-content').value = '';
+  document.getElementById('dr-file-input').value = '';
+  document.getElementById('dr-file-name').style.display = 'none';
+  document.getElementById('dr-result').style.display = 'none';
+  document.getElementById('dr-char-count').textContent = '0자';
+  document.getElementById('dr-drop-zone').style.borderColor = 'var(--border)';
+  drSelectedType = null;
+  document.querySelectorAll('#dr-type-tags .subject-select-btn').forEach(b => b.classList.remove('active'));
 }
 
 async function handlePdfUpload(files) {
