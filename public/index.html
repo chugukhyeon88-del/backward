@@ -4261,11 +4261,12 @@ function navigate(page) {
 //  localStorage 자동 임시저장 (Draft)
 // ═══════════════════════════════════════════════════
 const DRAFT_FIELDS = {
-  backward: ['bw-unit','bw-hours','bw-eu','bw-eq','bw-kk','bw-pt','bw-criteria','bw-plan'],
+  backward: ['bw-unit','bw-hours','bw-eu','bw-eq','bw-kk','bw-pt','bw-criteria','bw-plan','bw-other-ev','bw-type'],
   grasps:   ['grasps-unit','grasps-g','grasps-r','grasps-au','grasps-s','grasps-p','grasps-ps'],
   'lesson-plan': ['lp-unit','lp-standards','lp-goal'],
   rubric:   ['rb-task','rb-criteria'],
   'achievement-level': ['al-unit'],
+  assessment: ['as-unit'],
 };
 
 function saveDraft(page) {
@@ -4326,10 +4327,12 @@ window.addEventListener('DOMContentLoaded', () => {
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
-        el.addEventListener('input', () => {
+        const handler = () => {
           clearTimeout(draftTimer[page]);
           draftTimer[page] = setTimeout(() => saveDraft(page), 800);
-        });
+        };
+        el.addEventListener('input', handler);
+        el.addEventListener('change', handler);
       });
     });
   }, 1000);
@@ -4690,6 +4693,7 @@ function toggleSubjectTag(btn) {
     btn.classList.add('selected');
   }
   renderBwStdContainer();
+  setTimeout(() => saveDraft('backward'), 300);
 }
 
 function renderBwStdContainer() {
@@ -5508,7 +5512,6 @@ async function saveDesign(type) {
 
   try {
     await fb.setDoc(fb.doc(fb.db, 'designs', id), data);
-    clearDraft(type);
     showToast('✓ 저장되었습니다');
     return id;
   } catch(e) { alert('저장 오류: ' + e.message); }
@@ -5566,6 +5569,7 @@ async function loadDesign(docId, type) {
     const snap = await fb.getDoc(fb.doc(fb.db, 'designs', docId));
     if (!snap.exists()) { alert('설계를 찾을 수 없습니다.'); return; }
     applyDesignData(snap.data(), type);
+    setTimeout(() => saveDraft(type), 200);
     closeLoadModal();
     showToast('✓ 불러왔습니다');
   } catch(e) { alert('오류: ' + e.message); }
