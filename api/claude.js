@@ -8,10 +8,13 @@ module.exports = async function (req, res) {
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST')   { res.status(405).json({ error: 'Method not allowed' }); return; }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) { res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' }); return; }
+  const { prompt, maxTokens = 8000, system, userApiKey } = req.body || {};
 
-  const { prompt, maxTokens = 8000, system } = req.body || {};
+  // 사용자 제공 키 우선, 없으면 서버 환경변수 사용
+  const rawKey = (userApiKey && typeof userApiKey === 'string' ? userApiKey.trim() : '') || process.env.ANTHROPIC_API_KEY || '';
+  if (!rawKey) { res.status(500).json({ error: 'API 키가 설정되지 않았습니다.' }); return; }
+  if (!rawKey.startsWith('sk-ant-')) { res.status(400).json({ error: '유효하지 않은 Anthropic API 키 형식입니다. (sk-ant-로 시작해야 합니다)' }); return; }
+  const apiKey = rawKey;
   if (!prompt) { res.status(400).json({ error: 'prompt required' }); return; }
 
   const upstream = await fetch('https://api.anthropic.com/v1/messages', {

@@ -1057,13 +1057,26 @@
 
 <!-- API KEY MODAL -->
 <div class="modal-overlay" id="api-key-modal" onclick="if(event.target===this)closeApiModal()">
-  <div class="modal-box">
-    <div class="modal-title">🔑 Anthropic API 키 설정</div>
-    <div class="modal-desc">Claude API 키를 입력하세요. 키는 브라우저 로컬 스토리지에만 저장되며 외부로 전송되지 않습니다.<br><br><strong>sk-ant-...</strong> 형식의 키를 입력하세요.</div>
-    <input class="modal-input" id="api-key" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
-    <div class="modal-btns">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-title">🔑 내 API 키로 AI 사용하기</div>
+    <div class="modal-desc" style="line-height:1.8;">
+      Anthropic Console에서 발급한 <strong>개인 API 키</strong>를 입력하면<br>
+      관리자 설정과 무관하게 <span style="color:var(--primary);font-weight:700;">AI 기능을 직접 사용</span>할 수 있습니다.<br><br>
+      <span style="font-size:12px;color:var(--text3);">
+        🔒 키는 이 브라우저의 로컬 스토리지에만 저장되며, 외부로 전송되지 않습니다.<br>
+        💡 API 키 발급: <strong>console.anthropic.com</strong> → API Keys
+      </span>
+    </div>
+    <div style="position:relative;">
+      <input class="modal-input" id="api-key" type="password" placeholder="sk-ant-api03-..." autocomplete="off" style="padding-right:44px;">
+      <button onclick="toggleApiKeyVisibility()" title="보기/숨기기"
+        style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--text3);" id="api-key-eye">👁</button>
+    </div>
+    <div id="api-key-status" style="font-size:12px;margin-top:6px;min-height:18px;"></div>
+    <div class="modal-btns" style="margin-top:12px;">
+      <button class="btn btn-outline" onclick="removeApiKey()" style="color:var(--danger,#e53e3e);border-color:var(--danger,#e53e3e);">🗑 키 삭제</button>
       <button class="btn btn-outline" onclick="closeApiModal()">취소</button>
-      <button class="btn btn-primary" onclick="saveApiKey()">저장</button>
+      <button class="btn btn-primary" onclick="saveApiKey()">✅ 저장 후 AI 켜기</button>
     </div>
   </div>
 </div>
@@ -1074,6 +1087,10 @@
     <!-- 관리자 AI 토글 (관리자만 표시) -->
     <button class="ai-toggle-btn" id="ai-toggle-btn" onclick="toggleAiMode()" style="display:none;" title="AI 추천 기능 ON/OFF">
       🤖 AI <span id="ai-toggle-label">OFF</span>
+    </button>
+    <!-- 사용자 API 키 버튼 (항상 표시) -->
+    <button class="api-key-btn" id="api-key-btn" onclick="openApiModal()" title="내 API 키로 AI 기능 사용">
+      🔑 내 API 키
     </button>
     <button class="auth-btn" id="auth-btn" onclick="handleAuthClick()">🔐 로그인</button>
     <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()">🌙</button>
@@ -2494,22 +2511,54 @@ function toggleTheme() {
 //  API KEY
 // ═══════════════════════════════════════════════════
 function openApiModal() {
-  document.getElementById('api-key').value = localStorage.getItem('claude_api_key') || '';
+  const k = localStorage.getItem('claude_api_key') || '';
+  document.getElementById('api-key').value = k;
+  const status = document.getElementById('api-key-status');
+  if (status) status.textContent = k ? '✅ API 키가 저장되어 있습니다.' : '';
   document.getElementById('api-key-modal').classList.add('open');
 }
 function closeApiModal() { document.getElementById('api-key-modal').classList.remove('open'); }
+function toggleApiKeyVisibility() {
+  const inp = document.getElementById('api-key');
+  const eye = document.getElementById('api-key-eye');
+  if (inp.type === 'password') { inp.type = 'text'; eye.textContent = '🙈'; }
+  else { inp.type = 'password'; eye.textContent = '👁'; }
+}
 function saveApiKey() {
   const k = document.getElementById('api-key').value.trim();
-  if (k) localStorage.setItem('claude_api_key', k);
-  else localStorage.removeItem('claude_api_key');
-  updateApiKeyBtn(); closeApiModal();
+  const status = document.getElementById('api-key-status');
+  if (!k) { if (status) status.textContent = '⚠️ API 키를 입력해 주세요.'; return; }
+  if (!k.startsWith('sk-ant-')) {
+    if (status) status.style.color = 'var(--danger,#e53e3e)';
+    if (status) status.textContent = '❌ 유효하지 않은 형식입니다. sk-ant- 로 시작해야 합니다.';
+    return;
+  }
+  localStorage.setItem('claude_api_key', k);
+  updateApiKeyBtn();
+  closeApiModal();
+  showToast('✅ API 키가 저장됐습니다. AI 기능을 사용할 수 있습니다.');
+}
+function removeApiKey() {
+  if (!confirm('저장된 API 키를 삭제하시겠습니까?')) return;
+  localStorage.removeItem('claude_api_key');
+  document.getElementById('api-key').value = '';
+  const status = document.getElementById('api-key-status');
+  if (status) { status.style.color = ''; status.textContent = '🗑 API 키가 삭제됐습니다.'; }
+  updateApiKeyBtn();
 }
 function updateApiKeyBtn() {
   const btn = document.getElementById('api-key-btn');
   if (!btn) return;
   const k = localStorage.getItem('claude_api_key');
-  if (k) { btn.textContent = '🔑 API 키 ✓'; btn.classList.add('set'); }
-  else { btn.textContent = '🔑 API 키 설정'; btn.classList.remove('set'); }
+  if (k) {
+    btn.innerHTML = '🔑 내 키 <span style="color:#6ee56e;font-size:11px;font-weight:700;">ON</span>';
+    btn.classList.add('set');
+    btn.title = 'API 키 설정됨 — AI 기능 사용 가능';
+  } else {
+    btn.innerHTML = '🔑 내 API 키';
+    btn.classList.remove('set');
+    btn.title = '내 API 키로 AI 기능 사용하기';
+  }
 }
 function getApiKey() { return localStorage.getItem('claude_api_key') || ''; }
 
@@ -2575,10 +2624,11 @@ async function callClaudeStream(prompt, outputElemId, maxTokens) {
   el.innerHTML = '<span style="color:var(--text3)">AI가 생성 중입니다...</span><span class="cursor-blink"></span>';
 
   try {
+    const userApiKey = getApiKey();
     const res = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, maxTokens }),
+      body: JSON.stringify({ prompt, maxTokens, ...(userApiKey ? { userApiKey } : {}) }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -5449,10 +5499,13 @@ async function toggleAiMode() {
 }
 
 async function checkAiEnabled() {
-  // 최신 상태 Firestore에서 확인
+  // 사용자 개인 API 키가 있으면 관리자 설정 무관하게 허용
+  if (getApiKey()) return true;
+  // 없으면 관리자 설정 확인
   await loadAiSetting();
   if (!_aiEnabled) {
-    alert('🔒 AI 추천 기능이 현재 비활성화 상태입니다.\n관리자가 활성화해야 사용할 수 있습니다.');
+    const use = confirm('🔒 AI 기능이 비활성화 상태입니다.\n\n개인 Anthropic API 키를 입력하면 바로 사용할 수 있습니다.\n\n지금 API 키를 입력하시겠습니까?');
+    if (use) openApiModal();
     return false;
   }
   return true;
